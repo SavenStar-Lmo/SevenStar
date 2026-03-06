@@ -1,0 +1,915 @@
+{% extends "base.html" %}
+{% load static %}
+
+{# ════════════════════════════════════════════════════════════════
+   SevenStar Limo & Chauffeur — index.html (Home Page)
+   SEO-hardened child template · Melbourne, VIC, Australia
+════════════════════════════════════════════════════════════════ #}
+
+{# ─── PRIMARY META ───────────────────────────────────────────── #}
+{% block title %}SevenStar Limo & Chauffeur Melbourne | Luxury Airport Transfers & Chauffeur Car Hire 24/7{% endblock %}
+
+{% block meta_description %}SevenStar Limo & Chauffeur — Melbourne's #1 luxury chauffeur and limousine service. Fixed-price airport transfers to Tullamarine & Avalon, corporate car hire, wedding chauffeurs & special events. CPV accredited drivers. Available 24/7 across Melbourne, Mornington Peninsula, Yarra Valley & Geelong. Book online now.{% endblock %}
+
+{% block meta_keywords %}SevenStar Limo Melbourne, SevenStar Chauffeur Melbourne, chauffeur Melbourne, limo hire Melbourne, limousine service Melbourne, airport transfer Melbourne Tullamarine, airport pickup Melbourne, airport drop-off Melbourne, Avalon airport transfer, corporate chauffeur Melbourne, luxury car hire Melbourne, wedding chauffeur Melbourne, point to point transfer Melbourne, hourly chauffeur Melbourne, CPV accredited chauffeur Melbourne, 24 hour chauffeur Melbourne, Melbourne CBD chauffeur, Mornington Peninsula chauffeur, Yarra Valley winery transfer{% endblock %}
+
+{% block meta_robots %}index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1{% endblock %}
+
+{# ─── CANONICAL & HREFLANG ───────────────────────────────────── #}
+{% block canonical_url %}https://www.sevenstarlimo.com.au/{% endblock %}
+{% block hreflang_au %}https://www.sevenstarlimo.com.au/{% endblock %}
+{% block hreflang_default %}https://www.sevenstarlimo.com.au/{% endblock %}
+
+{# ─── OPEN GRAPH ─────────────────────────────────────────────── #}
+{% block og_type %}website{% endblock %}
+{% block og_title %}SevenStar Limo & Chauffeur Melbourne | Luxury Airport Transfers & Car Hire{% endblock %}
+{% block og_description %}Melbourne's premier chauffeur service. Fixed pricing, CPV accredited drivers, 24/7 availability. Airport transfers, corporate, weddings & events. Book SevenStar Limo online now.{% endblock %}
+{% block og_image %}{% static 'img/logo.png' %}{% endblock %}
+{% block og_image_secure %}{% static 'img/logo.png' %}{% endblock %}
+{% block og_image_alt %}SevenStar Limo & Chauffeur — luxury Mercedes fleet ready for Melbourne airport transfers{% endblock %}
+{% block og_url %}https://www.sevenstarlimo.com.au/{% endblock %}
+
+{# ─── TWITTER / X ────────────────────────────────────────────── #}
+{% block twitter_title %}SevenStar Limo & Chauffeur | Melbourne's #1 Luxury Transfer Service{% endblock %}
+{% block twitter_description %}Fixed pricing. CPV drivers. 24/7 across Melbourne & Victoria. Airport transfers, corporate, weddings & events. Book SevenStar Limo now.{% endblock %}
+{% block twitter_image %}{% static 'img/logo.png' %}{% endblock %}
+{% block twitter_image_alt %}SevenStar Limo & Chauffeur Melbourne luxury fleet{% endblock %}
+
+{# ─── PRELOAD HERO IMAGE (LCP optimisation) ──────────────────── #}
+{% block preload_hero %}
+<link rel="preload" as="image" href="{% static 'img/hero-car.webp' %}" fetchpriority="high"
+      imagesrcset="{% static 'img/hero-car-768.webp' %} 768w, {% static 'img/hero-car.webp' %} 1440w"
+      imagesizes="100vw">
+{% endblock %}
+
+{# ─── PAGE-LEVEL STRUCTURED DATA ─────────────────────────────── #}
+{% block extra_schema %}
+
+{# FAQPage — feeds Google FAQ rich results in SERPs #}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "How do I book a chauffeur in Melbourne with SevenStar Limo?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Book online 24/7 through our booking form at sevenstarlimo.com.au — it takes under 60 seconds. Select your service type (airport transfer, point-to-point, hourly), enter your pickup and drop-off details, choose your vehicle and confirm with a secure payment. You'll receive instant email confirmation."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Does SevenStar Limo offer fixed pricing for Melbourne airport transfers?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. All SevenStar Limo & Chauffeur transfers are 100% fixed price with no hidden fees, no surge pricing and no meter. The price quoted at the time of booking is exactly what you pay — guaranteed."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Do you track flights for Melbourne airport pickups?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. SevenStar Limo monitors all incoming flights at Melbourne Tullamarine and Avalon Airport in real time. If your flight is delayed, we automatically adjust your pickup time at no extra charge. Your driver will be waiting at arrivals when you land."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What areas does SevenStar Limo service in Melbourne?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "SevenStar Limo & Chauffeur services all of Melbourne and greater Victoria including Melbourne CBD, Tullamarine Airport, Avalon Airport, Mornington Peninsula, Yarra Valley, Dandenong Ranges, Geelong, Ballarat, Bendigo, Phillip Island and the Great Ocean Road."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Are SevenStar Limo drivers CPV accredited?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. All SevenStar Limo & Chauffeur drivers hold full Victorian Commercial Passenger Vehicle (CPV) accreditation and undergo rigorous background and safety checks before joining our fleet."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What is SevenStar Limo's cancellation policy?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "SevenStar Limo offers free cancellation up to 24 hours before your scheduled pickup. For cancellations within 24 hours, our standard cancellation fee applies. Please see our Terms & Conditions on sevenstarlimo.com.au for full details."
+            }
+        }
+    ]
+}
+</script>
+
+{# BreadcrumbList — for Home page breadcrumb in SERPs #}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://www.sevenstarlimo.com.au/"
+        }
+    ]
+}
+</script>
+
+{# Service schema — surfaces service cards in rich results #}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "SevenStar Limo & Chauffeur Services",
+    "description": "Luxury chauffeur services available across Melbourne and Victoria",
+    "itemListElement": [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "item": {
+                "@type": "Service",
+                "name": "Melbourne Airport Transfer",
+                "description": "Stress-free pick-ups and drop-offs at Melbourne Tullamarine and Avalon Airport. Real-time flight tracking included. Fixed pricing, no surprises.",
+                "provider": { "@id": "https://www.sevenstarlimo.com.au/#business" },
+                "areaServed": "Melbourne, VIC, Australia",
+                "url": "https://www.sevenstarlimo.com.au/orders/?type=tair"
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 2,
+            "item": {
+                "@type": "Service",
+                "name": "Corporate Chauffeur Melbourne",
+                "description": "Executive point-to-point transfers for Melbourne's business community. Immaculate vehicles, discreet professional drivers, fixed pricing.",
+                "provider": { "@id": "https://www.sevenstarlimo.com.au/#business" },
+                "areaServed": "Melbourne, VIC, Australia",
+                "url": "https://www.sevenstarlimo.com.au/orders/?type=ptp"
+            }
+        },
+        {
+            "@type": "ListItem",
+            "position": 3,
+            "item": {
+                "@type": "Service",
+                "name": "Hourly Chauffeur Hire Melbourne",
+                "description": "As-directed hourly chauffeur hire for weddings, galas, winery tours and special occasions across Melbourne and Victoria.",
+                "provider": { "@id": "https://www.sevenstarlimo.com.au/#business" },
+                "areaServed": "Melbourne, VIC, Australia",
+                "url": "https://www.sevenstarlimo.com.au/orders/?type=oh"
+            }
+        }
+    ]
+}
+</script>
+
+{# AggregateRating standalone — for sitewide star display #}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "@id": "https://www.sevenstarlimo.com.au/#business",
+    "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "reviewCount": "120",
+        "bestRating": "5",
+        "worstRating": "1"
+    },
+    "review": [
+        {
+            "@type": "Review",
+            "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+            "author": { "@type": "Person", "name": "Sarah M." },
+            "reviewBody": "Absolutely impeccable service. Our driver was waiting at arrivals with a name board, helped with luggage and had the car at exactly the right temperature. Will never use anyone else.",
+            "datePublished": "2024-11-15"
+        },
+        {
+            "@type": "Review",
+            "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+            "author": { "@type": "Person", "name": "James K." },
+            "reviewBody": "Used this service for our wedding. The cars were spotless, the driver was professional and discreet. Our guests were so impressed.",
+            "datePublished": "2024-10-02"
+        },
+        {
+            "@type": "Review",
+            "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" },
+            "author": { "@type": "Person", "name": "David T." },
+            "reviewBody": "I use this service weekly for corporate travel. The reliability is second to none. Fixed pricing means no bill shock, and the vehicles are always immaculate.",
+            "datePublished": "2025-01-20"
+        }
+    ]
+}
+</script>
+
+{% endblock %}
+
+
+{# ─── FONTS + STYLESHEET ─────────────────────────────────────── #}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/index.css' %}">
+{% endblock %}
+
+
+{# ════════════════════════════════════════════════════════════════
+   BODY
+════════════════════════════════════════════════════════════════ #}
+{% block body %}
+<div data-page="home">
+
+<!-- ════════════════════════════════
+     1. HERO
+════════════════════════════════ -->
+<section class="hp__hero" aria-label="SevenStar Limo & Chauffeur — Melbourne's Premier Luxury Transfer Service">
+
+    <div class="hp__hero-bg"
+         role="img"
+         aria-label="SevenStar Limo luxury black Mercedes chauffeur vehicle in Melbourne"></div>
+    <div class="hp__hero-accent-h" aria-hidden="true"></div>
+    <div class="hp__hero-accent-v" aria-hidden="true"></div>
+
+    <div class="hp__hero-inner">
+
+        <p class="hp__hero-kicker">SevenStar Limo &amp; Chauffeur — Melbourne</p>
+
+        <h1 class="hp__hero-title">
+            <strong>Arrive in</strong>
+            <em>Style &amp; Comfort</em>
+        </h1>
+
+        <p class="hp__hero-desc">
+            Melbourne's premier luxury chauffeur and limousine service. Fixed-price airport
+            transfers, corporate car hire, weddings &amp; events across Melbourne, Mornington
+            Peninsula &amp; all of Victoria — 24 hours a day, 7 days a week.
+        </p>
+
+        <div class="hp__hero-actions">
+            <a href="{% url 'orders' %}?type=tair"
+               class="hp__btn hp__btn--gold"
+               title="Book a Melbourne airport transfer with SevenStar Limo">
+                Book Your Transfer
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="12 5 19 12 12 19"/>
+                </svg>
+            </a>
+            <a href="{% url 'about' %}"
+               class="hp__btn hp__btn--ghost"
+               title="Learn more about SevenStar Limo & Chauffeur Melbourne">
+                Discover More
+            </a>
+        </div>
+
+        <div class="hp__hero-stats" aria-label="SevenStar Limo service highlights">
+            <div>
+                <div class="hp__hero-stat-num">24/7</div>
+                <div class="hp__hero-stat-label">Available Always</div>
+            </div>
+            <div>
+                <div class="hp__hero-stat-num">5★</div>
+                <div class="hp__hero-stat-label">Rated Service</div>
+            </div>
+            <div>
+                <div class="hp__hero-stat-num">100%</div>
+                <div class="hp__hero-stat-label">Fixed Pricing</div>
+            </div>
+            <div>
+                <div class="hp__hero-stat-num">CPV</div>
+                <div class="hp__hero-stat-label">Accredited Drivers</div>
+            </div>
+        </div>
+
+    </div>
+
+    <a href="#hp-bstrip" class="hp__scroll-cue" aria-label="Scroll down to booking options">
+        <div class="hp__scroll-line"></div>
+        <span>Scroll</span>
+    </a>
+
+</section>
+
+
+<!-- ════════════════════════════════
+     2. QUICK BOOKING STRIP
+     Internal links with type params improve crawl depth
+     and keyword targeting per service category.
+════════════════════════════════ -->
+<nav class="hp__bstrip" id="hp-bstrip" aria-label="Quick booking by service type">
+    <div class="hp__bstrip-grid">
+
+        <a href="{% url 'orders' %}?type=tair"
+           class="hp__bcard hp__reveal"
+           title="Book a to-airport chauffeur transfer in Melbourne with SevenStar Limo">
+            <span class="hp__bcard-icon" aria-hidden="true">✈</span>
+            <span class="hp__bcard-label">To Airport</span>
+            <span class="hp__bcard-sub">Drop-off transfers</span>
+        </a>
+
+        <a href="{% url 'orders' %}?type=fair"
+           class="hp__bcard hp__reveal hp__d1"
+           title="Book a from-airport chauffeur pickup in Melbourne with SevenStar Limo">
+            <span class="hp__bcard-icon" aria-hidden="true">🛬</span>
+            <span class="hp__bcard-label">From Airport</span>
+            <span class="hp__bcard-sub">Pick-up transfers</span>
+        </a>
+
+        <a href="{% url 'orders' %}?type=ptp"
+           class="hp__bcard hp__reveal hp__d2"
+           title="Book a point-to-point chauffeur transfer anywhere in Melbourne">
+            <span class="hp__bcard-icon" aria-hidden="true">↔</span>
+            <span class="hp__bcard-label">Point to Point</span>
+            <span class="hp__bcard-sub">Any suburb, anywhere</span>
+        </a>
+
+        <a href="{% url 'orders' %}?type=oh"
+           class="hp__bcard hp__reveal hp__d3"
+           title="Book hourly or as-directed chauffeur hire in Melbourne">
+            <span class="hp__bcard-icon" aria-hidden="true">⏱</span>
+            <span class="hp__bcard-label">Hourly / As Directed</span>
+            <span class="hp__bcard-sub">Your schedule, your way</span>
+        </a>
+
+        <a href="{% url 'orders' %}?type=th"
+           class="hp__bcard hp__reveal hp__d4"
+           title="Book a 2-hour chauffeur package for events and occasions in Melbourne">
+            <span class="hp__bcard-icon" aria-hidden="true">★</span>
+            <span class="hp__bcard-label">2-Hour Package</span>
+            <span class="hp__bcard-sub">Events &amp; occasions</span>
+        </a>
+
+    </div>
+</nav>
+
+
+<!-- ════════════════════════════════
+     3. WHY CHOOSE US
+════════════════════════════════ -->
+<section class="hp__section" aria-labelledby="hp-about-heading">
+    <div class="hp__wrap">
+        <div class="hp__about-grid">
+
+            <div class="hp__img-wrap hp__reveal">
+                <img
+                    class="hp__img"
+                    src="{% static 'img/chauffeur-door.jpg' %}"
+                    srcset="{% static 'img/chauffeur-door-600.webp' %} 600w,
+                            {% static 'img/chauffeur-door.webp' %}    900w"
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    alt="SevenStar Limo professional chauffeur opening door of luxury black Mercedes in Melbourne"
+                    width="600" height="750"
+                    loading="lazy"
+                    decoding="async"
+                >
+                <div class="hp__img-badge" aria-label="Over 10 years of chauffeur service experience in Melbourne">
+                    <span class="hp__img-badge-num">10+</span>
+                    <span class="hp__img-badge-text">Years of Excellence</span>
+                </div>
+            </div>
+
+            <div>
+                <p class="hp__label hp__reveal">Who We Are</p>
+                <h2 class="hp__title hp__reveal hp__d1" id="hp-about-heading">
+                    Melbourne's Most <em>Trusted</em><br>Chauffeur Service
+                </h2>
+                <p class="hp__sub hp__reveal hp__d2">
+                    SevenStar Limo &amp; Chauffeur believes every journey deserves to be
+                    exceptional. From the moment you book to the moment you arrive, our
+                    professional Melbourne team is dedicated to delivering a seamless,
+                    luxurious experience — every single time.
+                </p>
+
+                <div class="hp__pillars">
+                    <div class="hp__pillar hp__reveal hp__d2">
+                        <span class="hp__pillar-icon" aria-hidden="true">🎖️</span>
+                        <div class="hp__pillar-title">CPV Accredited Drivers</div>
+                        <p class="hp__pillar-text">All SevenStar Limo drivers hold full Victorian Commercial Passenger Vehicle accreditation.</p>
+                    </div>
+                    <div class="hp__pillar hp__reveal hp__d3">
+                        <span class="hp__pillar-icon" aria-hidden="true">⏰</span>
+                        <div class="hp__pillar-title">Always On Time</div>
+                        <p class="hp__pillar-text">Real-time flight tracking &amp; GPS monitoring ensures your Melbourne chauffeur is ready before you are.</p>
+                    </div>
+                    <div class="hp__pillar hp__reveal hp__d3">
+                        <span class="hp__pillar-icon" aria-hidden="true">💰</span>
+                        <div class="hp__pillar-title">100% Fixed Pricing</div>
+                        <p class="hp__pillar-text">No surge pricing. No surprises. Your SevenStar Limo quote is your final price — always.</p>
+                    </div>
+                    <div class="hp__pillar hp__reveal hp__d4">
+                        <span class="hp__pillar-icon" aria-hidden="true">🌟</span>
+                        <div class="hp__pillar-title">5-Star Rated in Melbourne</div>
+                        <p class="hp__pillar-text">Hundreds of 5-star reviews from Melbourne's most discerning corporate and leisure travellers.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ════════════════════════════════
+     4. SERVICES
+════════════════════════════════ -->
+<section class="hp__section hp__section--cream" aria-labelledby="hp-services-heading">
+    <div class="hp__wrap">
+        <div class="hp__services-hdr">
+            <div>
+                <p class="hp__label hp__reveal">What We Offer</p>
+                <h2 class="hp__title hp__reveal hp__d1" id="hp-services-heading">
+                    Every Journey, <em>Perfected</em>
+                </h2>
+            </div>
+            <a href="{% url 'orders' %}?type=tair"
+               class="hp__btn hp__btn--gold hp__reveal hp__d2"
+               style="align-self:flex-end;"
+               title="Book a luxury chauffeur transfer with SevenStar Limo Melbourne">
+                Book Now
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="12 5 19 12 12 19"/>
+                </svg>
+            </a>
+        </div>
+
+        <div class="hp__services-grid">
+
+            <!-- Airport Transfer -->
+            <a href="{% url 'orders' %}?type=tair"
+               class="hp__scard hp__reveal"
+               title="Melbourne airport transfer — SevenStar Limo Tullamarine & Avalon">
+                <div class="hp__scard-thumb">
+                    <img src="{% static 'img/service-airport.jpg' %}"
+                         srcset="{% static 'img/service-airport-400.webp' %} 400w,
+                                 {% static 'img/service-airport.webp' %}     800w"
+                         sizes="(max-width: 768px) 100vw, 33vw"
+                         alt="SevenStar Limo Melbourne Airport transfer — luxury chauffeur car at Tullamarine"
+                         width="400" height="225"
+                         loading="lazy" decoding="async">
+                    <span class="hp__scard-tag">Most Popular</span>
+                </div>
+                <div class="hp__scard-body">
+                    <span class="hp__scard-icon" aria-hidden="true">✈️</span>
+                    <h3 class="hp__scard-title">Airport Transfers</h3>
+                    <p class="hp__scard-desc">
+                        Stress-free pick-ups and drop-offs at Melbourne Tullamarine &amp;
+                        Avalon Airport. Real-time flight tracking included. Fixed price guaranteed.
+                    </p>
+                    <span class="hp__scard-arrow">
+                        Book Transfer
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </span>
+                </div>
+            </a>
+
+            <!-- Corporate -->
+            <a href="{% url 'orders' %}?type=ptp"
+               class="hp__scard hp__reveal hp__d1"
+               title="Corporate chauffeur Melbourne CBD — SevenStar Limo executive transfers">
+                <div class="hp__scard-thumb">
+                    <img src="{% static 'img/service-corporate.jpg' %}"
+                         srcset="{% static 'img/service-corporate-400.webp' %} 400w,
+                                 {% static 'img/service-corporate.webp' %}     800w"
+                         sizes="(max-width: 768px) 100vw, 33vw"
+                         alt="SevenStar Limo corporate chauffeur service Melbourne CBD — executive point-to-point transfer"
+                         width="400" height="225"
+                         loading="lazy" decoding="async">
+                    <span class="hp__scard-tag">Corporate</span>
+                </div>
+                <div class="hp__scard-body">
+                    <span class="hp__scard-icon" aria-hidden="true">💼</span>
+                    <h3 class="hp__scard-title">Corporate Transfers</h3>
+                    <p class="hp__scard-desc">
+                        Make the right impression. Executive point-to-point chauffeur transfers
+                        for Melbourne's business community — reliable, discreet &amp; always on time.
+                    </p>
+                    <span class="hp__scard-arrow">
+                        Book Transfer
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </span>
+                </div>
+            </a>
+
+            <!-- Events -->
+            <a href="{% url 'orders' %}?type=oh"
+               class="hp__scard hp__reveal hp__d2"
+               title="Hourly chauffeur hire Melbourne — weddings, events & winery tours with SevenStar Limo">
+                <div class="hp__scard-thumb">
+                    <img src="{% static 'img/service-events.jpg' %}"
+                         srcset="{% static 'img/service-events-400.webp' %} 400w,
+                                 {% static 'img/service-events.webp' %}     800w"
+                         sizes="(max-width: 768px) 100vw, 33vw"
+                         alt="SevenStar Limo hourly chauffeur hire Melbourne — weddings, galas and winery tours"
+                         width="400" height="225"
+                         loading="lazy" decoding="async">
+                    <span class="hp__scard-tag">Flexible</span>
+                </div>
+                <div class="hp__scard-body">
+                    <span class="hp__scard-icon" aria-hidden="true">🥂</span>
+                    <h3 class="hp__scard-title">Events &amp; Occasions</h3>
+                    <p class="hp__scard-desc">
+                        Weddings, galas, Yarra Valley winery tours &amp; special celebrations.
+                        Hourly or as-directed packages available across Melbourne &amp; Victoria.
+                    </p>
+                    <span class="hp__scard-arrow">
+                        Book Transfer
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </span>
+                </div>
+            </a>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ════════════════════════════════
+     5. HOW IT WORKS
+════════════════════════════════ -->
+<section class="hp__section hp__section--dark" aria-labelledby="hp-how-heading">
+    <div class="hp__wrap">
+        <p class="hp__label hp__label--light hp__reveal">Simple Process</p>
+        <h2 class="hp__title hp__title--light hp__reveal hp__d1" id="hp-how-heading">
+            Book in Under <em>60 Seconds</em>
+        </h2>
+        <p class="hp__sub hp__sub--light hp__reveal hp__d2">
+            Four simple steps from booking to boarding your SevenStar Limo luxury vehicle.
+        </p>
+
+        <ol class="hp__steps-grid" aria-label="How to book SevenStar Limo & Chauffeur Melbourne">
+            <li class="hp__step hp__reveal">
+                <div class="hp__step-num" aria-hidden="true">01</div>
+                <span class="hp__step-icon" aria-hidden="true">📋</span>
+                <div class="hp__step-title">Choose Your Service</div>
+                <p class="hp__step-text">Select from airport transfer, point-to-point, hourly hire or a special SevenStar Limo package.</p>
+                <div class="hp__step-sep" aria-hidden="true"></div>
+            </li>
+            <li class="hp__step hp__reveal hp__d1">
+                <div class="hp__step-num" aria-hidden="true">02</div>
+                <span class="hp__step-icon" aria-hidden="true">📍</span>
+                <div class="hp__step-title">Enter Your Details</div>
+                <p class="hp__step-text">Add your Melbourne pickup, destination, date &amp; time. Get your fixed price instantly.</p>
+                <div class="hp__step-sep" aria-hidden="true"></div>
+            </li>
+            <li class="hp__step hp__reveal hp__d2">
+                <div class="hp__step-num" aria-hidden="true">03</div>
+                <span class="hp__step-icon" aria-hidden="true">✅</span>
+                <div class="hp__step-title">Confirm &amp; Pay Securely</div>
+                <p class="hp__step-text">Secure your booking online. Instant confirmation sent directly to your email.</p>
+                <div class="hp__step-sep" aria-hidden="true"></div>
+            </li>
+            <li class="hp__step hp__reveal hp__d3">
+                <div class="hp__step-num" aria-hidden="true">04</div>
+                <span class="hp__step-icon" aria-hidden="true">🚘</span>
+                <div class="hp__step-title">Relax &amp; Arrive</div>
+                <p class="hp__step-text">Your SevenStar Limo professional chauffeur arrives early. Sit back and enjoy the ride.</p>
+            </li>
+        </ol>
+    </div>
+</section>
+
+
+<!-- ════════════════════════════════
+     6. TESTIMONIALS
+     Review schema injected above in extra_schema.
+     Real markup here reinforces the schema.
+════════════════════════════════ -->
+<section class="hp__section hp__section--cream" aria-labelledby="hp-reviews-heading">
+    <div class="hp__wrap">
+        <p class="hp__label hp__reveal">Client Reviews</p>
+        <h2 class="hp__title hp__reveal hp__d1" id="hp-reviews-heading">
+            What Our Melbourne Clients <em>Say</em>
+        </h2>
+
+        <div class="hp__reviews-grid" itemscope itemtype="https://schema.org/Organization">
+            <meta itemprop="name" content="SevenStar Limo & Chauffeur">
+
+            <article class="hp__rcard hp__reveal"
+                     itemscope itemtype="https://schema.org/Review">
+                <div class="hp__rcard-stars" aria-label="5 out of 5 stars"
+                     itemprop="reviewRating" itemscope itemtype="https://schema.org/Rating">
+                    <meta itemprop="ratingValue" content="5">
+                    <meta itemprop="bestRating"  content="5">
+                    ★★★★★
+                </div>
+                <p class="hp__rcard-quote" itemprop="reviewBody">
+                    Absolutely impeccable service. Our driver was waiting at arrivals with a name
+                    board, helped with luggage and had the car at exactly the right temperature.
+                    Will never use anyone else for Melbourne airport transfers.
+                </p>
+                <div class="hp__rcard-author">
+                    <div class="hp__rcard-avatar" aria-hidden="true">S</div>
+                    <div>
+                        <div class="hp__rcard-name" itemprop="author"
+                             itemscope itemtype="https://schema.org/Person">
+                            <span itemprop="name">Sarah M.</span>
+                        </div>
+                        <div class="hp__rcard-meta">Airport Transfer · Tullamarine</div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="hp__rcard hp__reveal hp__d1"
+                     itemscope itemtype="https://schema.org/Review">
+                <div class="hp__rcard-stars" aria-label="5 out of 5 stars"
+                     itemprop="reviewRating" itemscope itemtype="https://schema.org/Rating">
+                    <meta itemprop="ratingValue" content="5">
+                    <meta itemprop="bestRating"  content="5">
+                    ★★★★★
+                </div>
+                <p class="hp__rcard-quote" itemprop="reviewBody">
+                    Used SevenStar Limo for our wedding. The cars were spotless, the driver was
+                    professional and discreet. Our guests were so impressed. Highly recommend
+                    for any special occasion in Melbourne.
+                </p>
+                <div class="hp__rcard-author">
+                    <div class="hp__rcard-avatar" aria-hidden="true">J</div>
+                    <div>
+                        <div class="hp__rcard-name" itemprop="author"
+                             itemscope itemtype="https://schema.org/Person">
+                            <span itemprop="name">James &amp; Priya K.</span>
+                        </div>
+                        <div class="hp__rcard-meta">Wedding · Melbourne CBD</div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="hp__rcard hp__reveal hp__d2"
+                     itemscope itemtype="https://schema.org/Review">
+                <div class="hp__rcard-stars" aria-label="5 out of 5 stars"
+                     itemprop="reviewRating" itemscope itemtype="https://schema.org/Rating">
+                    <meta itemprop="ratingValue" content="5">
+                    <meta itemprop="bestRating"  content="5">
+                    ★★★★★
+                </div>
+                <p class="hp__rcard-quote" itemprop="reviewBody">
+                    I use SevenStar Limo weekly for corporate travel. The reliability is second
+                    to none. Fixed pricing means no bill shock, and the vehicles are always
+                    immaculate. My go-to Melbourne chauffeur service.
+                </p>
+                <div class="hp__rcard-author">
+                    <div class="hp__rcard-avatar" aria-hidden="true">D</div>
+                    <div>
+                        <div class="hp__rcard-name" itemprop="author"
+                             itemscope itemtype="https://schema.org/Person">
+                            <span itemprop="name">David T.</span>
+                        </div>
+                        <div class="hp__rcard-meta">Corporate Account · Weekly</div>
+                    </div>
+                </div>
+            </article>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ════════════════════════════════
+     7. SERVICE AREAS
+════════════════════════════════ -->
+<section class="hp__section" aria-labelledby="hp-areas-heading">
+    <div class="hp__wrap">
+        <p class="hp__label hp__reveal">Coverage</p>
+        <h2 class="hp__title hp__reveal hp__d1" id="hp-areas-heading">
+            SevenStar Limo Serves All of <em>Greater Melbourne</em>
+        </h2>
+        <p class="hp__sub hp__reveal hp__d2">
+            From Melbourne's CBD to the Yarra Valley, we cover every corner of Victoria
+            with professional, on-time chauffeur and limousine service.
+        </p>
+
+        <div class="hp__areas-grid">
+            <ul class="hp__areas-list hp__reveal"
+                aria-label="SevenStar Limo Melbourne service areas">
+                <li class="hp__areas-item">Melbourne CBD</li>
+                <li class="hp__areas-item">Melbourne Airport (Tullamarine)</li>
+                <li class="hp__areas-item">Avalon Airport</li>
+                <li class="hp__areas-item">Mornington Peninsula</li>
+                <li class="hp__areas-item">Yarra Valley</li>
+                <li class="hp__areas-item">Dandenong Ranges</li>
+                <li class="hp__areas-item">Geelong</li>
+                <li class="hp__areas-item">Ballarat</li>
+                <li class="hp__areas-item">Bendigo</li>
+                <li class="hp__areas-item">Phillip Island</li>
+                <li class="hp__areas-item">Great Ocean Road</li>
+                <li class="hp__areas-item">Healesville &amp; Surrounds</li>
+            </ul>
+
+            <div class="hp__areas-map hp__reveal hp__d1">
+                <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3151.8354345093705!2d144.95592931585508!3d-37.81720944201722!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad65d4c2b349649%3A0xb6899234e561db11!2sMelbourne%20VIC!5e0!3m2!1sen!2sau!4v1234567890"
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="SevenStar Limo & Chauffeur Melbourne service area map"
+                    aria-label="Google Map showing SevenStar Limo coverage across Melbourne and Victoria"
+                ></iframe>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ════════════════════════════════
+     8. CTA BANNER
+════════════════════════════════ -->
+<section class="hp__cta-banner" aria-labelledby="hp-cta-heading">
+    <div class="hp__cta-inner">
+        <p class="hp__cta-label">Ready to Travel in Style?</p>
+        <h2 class="hp__cta-title hp__reveal" id="hp-cta-heading">
+            Your SevenStar Chauffeur<br>Is Waiting for You
+        </h2>
+        <p class="hp__cta-sub hp__reveal hp__d1">
+            Book online in 60 seconds — fixed pricing, instant confirmation, no hidden fees.
+        </p>
+        <div class="hp__cta-actions hp__reveal hp__d2">
+            <a href="{% url 'orders' %}?type=tair"
+               class="hp__btn hp__btn--white"
+               title="Book a luxury Melbourne chauffeur transfer with SevenStar Limo">
+                Book Your Transfer
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="12 5 19 12 12 19"/>
+                </svg>
+            </a>
+            <a href="tel:+61XXXXXXXXX"
+               class="hp__btn hp__btn--white-outline"
+               title="Call SevenStar Limo & Chauffeur Melbourne now">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 5.61 5.61l.91-.91a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.27 16z"/>
+                </svg>
+                Call Us Now
+            </a>
+        </div>
+    </div>
+</section>
+
+
+<!-- ════════════════════════════════
+     9. FAQ
+     Matches FAQPage schema in extra_schema above.
+════════════════════════════════ -->
+<section class="hp__section hp__section--cream" aria-labelledby="hp-faq-heading">
+    <div class="hp__wrap">
+        <p class="hp__label hp__reveal">Got Questions?</p>
+        <h2 class="hp__title hp__reveal hp__d1" id="hp-faq-heading">
+            Frequently Asked <em>Questions</em>
+        </h2>
+
+        <div class="hp__faq-grid">
+
+            <div class="hp__reveal hp__d1">
+                <p class="hp__sub" style="margin-top:0;">
+                    Everything you need to know about booking a Melbourne chauffeur service
+                    with SevenStar Limo. Can't find an answer?
+                    <a href="{% url 'contact' %}"
+                       style="color:var(--hp-gold);text-decoration:none;font-weight:500;"
+                       title="Contact SevenStar Limo & Chauffeur Melbourne">
+                        Contact our team</a>.
+                </p>
+                <div style="margin-top:2rem;">
+                    <a href="{% url 'contact' %}"
+                       class="hp__btn hp__btn--gold"
+                       title="Contact SevenStar Limo & Chauffeur Melbourne">
+                        Contact Us
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <div class="hp__faq-list hp__reveal hp__d2">
+
+                <div class="hp__faq-item">
+                    <button class="hp__faq-q" aria-expanded="false">
+                        How do I book a Melbourne chauffeur with SevenStar Limo?
+                        <span class="hp__faq-chevron">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                        </span>
+                    </button>
+                    <div class="hp__faq-answer" aria-hidden="true">
+                        <p class="hp__faq-answer-body">
+                            Book online 24/7 through our booking form — it takes under 60 seconds.
+                            Select your service type, enter your Melbourne pickup and drop-off details,
+                            choose your vehicle and confirm with a secure payment. You'll receive
+                            instant email confirmation from SevenStar Limo.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="hp__faq-item">
+                    <button class="hp__faq-q" aria-expanded="false">
+                        Is SevenStar Limo pricing fixed or metered?
+                        <span class="hp__faq-chevron">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                        </span>
+                    </button>
+                    <div class="hp__faq-answer" aria-hidden="true">
+                        <p class="hp__faq-answer-body">
+                            All SevenStar Limo transfers are 100% fixed price with no hidden fees,
+                            no surge pricing and no meter. The price you see at the time of booking
+                            is exactly what you pay — guaranteed.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="hp__faq-item">
+                    <button class="hp__faq-q" aria-expanded="false">
+                        Does SevenStar Limo track flights for Melbourne airport pickups?
+                        <span class="hp__faq-chevron">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                        </span>
+                    </button>
+                    <div class="hp__faq-answer" aria-hidden="true">
+                        <p class="hp__faq-answer-body">
+                            Yes. We monitor all incoming flights at Melbourne Tullamarine and Avalon
+                            Airport in real time. If your flight is delayed, we automatically adjust
+                            your pickup time at no extra charge. Your SevenStar Limo driver will be
+                            waiting at arrivals when you land.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="hp__faq-item">
+                    <button class="hp__faq-q" aria-expanded="false">
+                        What Melbourne areas does SevenStar Limo service?
+                        <span class="hp__faq-chevron">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                        </span>
+                    </button>
+                    <div class="hp__faq-answer" aria-hidden="true">
+                        <p class="hp__faq-answer-body">
+                            SevenStar Limo services all of Melbourne and greater Victoria including
+                            Melbourne CBD, Tullamarine Airport, Avalon Airport, Mornington Peninsula,
+                            Yarra Valley, Geelong, Ballarat, Bendigo, Phillip Island and the
+                            Great Ocean Road.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="hp__faq-item">
+                    <button class="hp__faq-q" aria-expanded="false">
+                        What is SevenStar Limo's cancellation policy?
+                        <span class="hp__faq-chevron">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                        </span>
+                    </button>
+                    <div class="hp__faq-answer" aria-hidden="true">
+                        <p class="hp__faq-answer-body">
+                            Free cancellation up to 24 hours before your pickup. For cancellations
+                            within 24 hours, our standard fee applies. See our
+                            <a href="{% url 'terms' %}" title="SevenStar Limo Terms & Conditions">
+                                Terms &amp; Conditions</a> for full details.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+</div><!-- /[data-page="home"] -->
+{% endblock %}
+
+
+{# ─── DEFERRED JS ────────────────────────────────────────────── #}
+{% block extra_js %}
+<script src="{% static 'js/index.js' %}" defer></script>
+{% endblock %}
