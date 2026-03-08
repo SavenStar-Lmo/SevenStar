@@ -1,3 +1,4 @@
+import json
 import time
 import datetime
 import logging
@@ -5,8 +6,9 @@ import requests
 import stripe
 import googlemaps
 from django.conf import settings
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
@@ -614,3 +616,57 @@ def stripe_webhook(request):
             logger.warning("Checkout session expired for order #%s", order_id)
 
     return HttpResponse(status=200)
+
+
+@staff_member_required
+def finances_view(request):
+    return render(request, "finances.html")
+
+
+@staff_member_required
+def finances_data(request):
+    tab   = request.GET.get("tab", "this_month")
+    today = datetime.date.today()
+
+    if tab == "this_month":
+        qs = Order.objects.filter(
+            paid=True,
+            pickup_date__year=today.year,
+            pickup_date__month=today.month,
+        )
+
+    elif tab == "prev_month":
+        first_of_this = today.replace(day=1)
+        last_of_prev  = first_of_this - datetime.timedelta(days=1)
+        first_of_prev = last_of_prev.replace(day=1)
+        qs = Order.objects.filter(
+            paid=True,
+            pickup_date__range=(first_of_prev, last_of_prev),
+        )
+
+    elif tab == "custom":
+        frm = request.GET.get("from")
+        to  = request.GET.get("to")
+        if not frm or not to:
+            return JsonResponse({"error": "Missing date range."}, status=400)
+        qs = Order.objects.filter(
+            paid=True,
+            pickup_date__range=(frm, to),
+        )
+
+    else:  # lifetime
+        qs = Order.objects.filter(paid=True)
+
+    orders = []
+    for o in qs.order_by("-pickup_date"):
+        orders.append({
+            "id":              o.pk,
+            "passenger_name":  o.passenger_name,
+            "passenger_email": o.passenger_email,
+            "service_type":    o.service_type,
+            "pickup_date":     str(o.pickup_date),
+            "total_price":     float(o.total_price or 0),
+            "driver_fee":      float(o.driver_fee  or 0),
+        })
+
+    return JsonResponse({"orders": orders})

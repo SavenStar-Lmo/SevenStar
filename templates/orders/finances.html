@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Finance Dashboard — SevenStar Limo Admin{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/finances.css' %}">
+{% endblock %}
+
+{% block body %}
+<div class="fin__page">
+
+  <!-- ── HEADER ── -->
+  <div class="fin__header">
+    <div>
+      <h1 class="fin__heading">
+        Finance <span>Overview</span>
+      </h1>
+      <p class="fin__subtitle">SevenStar Limo &amp; Chauffeur · Internal Admin</p>
+    </div>
+    <span class="fin__timestamp"></span>
+  </div>
+
+  <!-- ── SUMMARY CARDS ── -->
+  <div class="fin__summary">
+
+    <div class="fin__card fin__card--earnings">
+      <div class="fin__card-label">Total Earnings</div>
+      <div class="fin__card-value" id="fin-card-earnings">$—</div>
+      <div class="fin__card-sub">Revenue from customers</div>
+      <div class="fin__card-badge">$</div>
+    </div>
+
+    <div class="fin__card fin__card--cost">
+      <div class="fin__card-label">Total Driver Cost</div>
+      <div class="fin__card-value" id="fin-card-cost">$—</div>
+      <div class="fin__card-sub">Driver fees paid out</div>
+      <div class="fin__card-badge">↓</div>
+    </div>
+
+    <div class="fin__card fin__card--profit">
+      <div class="fin__card-label">Net Profit</div>
+      <div class="fin__card-value" id="fin-card-profit">$—</div>
+      <div class="fin__card-sub" id="fin-card-count">— bookings</div>
+      <div class="fin__card-badge">✦</div>
+    </div>
+
+  </div>
+
+  <!-- ── FILTER TABS ── -->
+  <div class="fin__tabs">
+    <button class="fin__tab active" data-tab="this_month">This Month</button>
+    <button class="fin__tab"        data-tab="prev_month">Previous Month</button>
+    <button class="fin__tab"        data-tab="lifetime">Lifetime</button>
+    <button class="fin__tab"        data-tab="custom">Custom Range</button>
+  </div>
+
+  <!-- ── CUSTOM DATE RANGE PANEL ── -->
+  <div class="fin__custom-range" id="fin-custom-panel">
+    <label for="fin-from">From</label>
+    <input type="date" class="fin__date-input" id="fin-from">
+    <span class="fin__range-sep">→</span>
+    <label for="fin-to">To</label>
+    <input type="date" class="fin__date-input" id="fin-to">
+    <button class="fin__apply-btn" id="fin-apply">Apply</button>
+  </div>
+
+  <!-- ── PERIOD LABEL ── -->
+  <div class="fin__period-label"></div>
+
+  <!-- ── TABLE ── -->
+  <div class="fin__table-wrap">
+    <table class="fin__table" role="table" aria-label="Finance records">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Passenger</th>
+          <th>Service Type</th>
+          <th>Pickup Date</th>
+          <th class="right">Earnings (AUD)</th>
+          <th class="right">Driver Cost</th>
+          <th class="right">Profit</th>
+        </tr>
+      </thead>
+      <tbody class="fin__tbody">
+        <tr>
+          <td colspan="7">
+            <div class="fin__loading">
+              <div class="fin__spinner"></div>
+              <br>Loading records…
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'finances.js' %}" defer></script>
+{% endblock %}

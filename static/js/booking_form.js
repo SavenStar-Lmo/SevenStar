@@ -29,7 +29,7 @@
         window.bfCurrent = vehicleInput.value || BF_RATES[0].name;
     }
 
-    bfUpdatePrices();
+    //bfUpdatePrices();
     bfBuildDropdowns();
 
     // Set pickup date min to today
@@ -49,11 +49,11 @@ window.bfPick = function (card) {
     var inp = document.getElementById('bfVehicleInput');
     if (inp) inp.value = window.bfCurrent;
     bfBuildDropdowns();
-    bfUpdatePrices();
+    //bfUpdatePrices();
 };
 
 /* ── Price labels ───────────────────────────────────────────── */
-function bfUpdatePrices() {
+/* function bfUpdatePrices() {
     BF_RATES.forEach(function (r, i) {
         var el = document.getElementById('bfPrice' + (i + 1));
         if (!el) return;
@@ -61,7 +61,7 @@ function bfUpdatePrices() {
         else if (window.BF_TYPE === 'oh') el.textContent = '$' + r.ohRate.toFixed(0) + ' flat';
         else                              el.textContent = 'From $' + r.base.toFixed(0) + ' · $' + r.perKm.toFixed(2) + '/km';
     });
-}
+} */
 
 /* ── Get current rate object ─────────────────────────────────── */
 function bfCurrentRate() {
@@ -136,7 +136,7 @@ function bfUpgrade(rate, msg) {
         setTimeout(function () { noteEl.classList.remove('show'); }, 4000);
     }
     bfBuildDropdowns();
-    bfUpdatePrices();
+    //bfUpdatePrices();
 }
 
 /* ── Toggle switches ────────────────────────────────────────── */
