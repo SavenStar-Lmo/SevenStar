@@ -124,102 +124,46 @@ def _find_rate(rates, vehicle_name):
 # Helper 1 – Distance (Google Maps — active)
 # ─────────────────────────────────────────────────────────────────────────────
 
-# def calculate_distance(pickup: str, destination: str, extra_stop: str | None) -> dict:
-#     """
-#     Uses Google Maps Directions API to calculate driving distance.
-#     Returns distance_km and has_tolls.
-#     """
-#     gmaps = googlemaps.Client(key=settings.GOOGLE_MAPS_API_KEY)
-# 
-#     waypoints = [extra_stop] if extra_stop else None
-# 
-#     directions = gmaps.directions(
-#         origin=pickup,
-#         destination=destination,
-#         waypoints=waypoints,
-#         mode="driving",
-#         optimize_waypoints=False,
-#     )
-# 
-#     if not directions:
-#         raise ValueError("Google Maps returned no route for the given addresses.")
-# 
-#     total_meters = sum(leg["distance"]["value"] for leg in directions[0]["legs"])
-#     distance_km  = round(total_meters / 1000, 2)
-# 
-#     has_tolls = any(
-#         "toll" in step.get("html_instructions", "").lower()
-#         for leg in directions[0]["legs"]
-#         for step in leg["steps"]
-#     )
-# 
-#     return {
-#         "distance_km": distance_km,
-#         "has_tolls":   has_tolls,
-#     }
+def calculate_distance(pickup: str, destination: str, extra_stop: str | None) -> dict:
+    """
+    Uses Google Maps Directions API to calculate driving distance.
+    Returns distance_km and has_tolls.
+    """
+    gmaps = googlemaps.Client(key=settings.GOOGLE_MAPS_API_KEY)
+
+    waypoints = [extra_stop] if extra_stop else None
+
+    directions = gmaps.directions(
+        origin=pickup,
+        destination=destination,
+        waypoints=waypoints,
+        mode="driving",
+        optimize_waypoints=False,
+    )
+
+    if not directions:
+        raise ValueError("Google Maps returned no route for the given addresses.")
+
+    total_meters = sum(leg["distance"]["value"] for leg in directions[0]["legs"])
+    distance_km  = round(total_meters / 1000, 2)
+
+    has_tolls = any(
+        "toll" in step.get("html_instructions", "").lower()
+        for leg in directions[0]["legs"]
+        for step in leg["steps"]
+    )
+
+    return {
+        "distance_km": distance_km,
+        "has_tolls":   has_tolls,
+    }
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Helper 1 (alt) – Distance via Mapbox (commented out / backup)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def calculate_distance(pickup: str, destination: str, extra_stop: str | None) -> dict:
 
-    def get_coords(address):
-        """Geocode an address string → (latitude, longitude) via Nominatim."""
-        url = "https://nominatim.openstreetmap.org/search"
-        resp = requests.get(
-            url,
-            params={"q": address, "format": "json", "limit": 1},
-            headers={"User-Agent": "MelbourneChauffeurApp/1.0"},
-            timeout=10,
-        )
-        resp.raise_for_status()
-        data = resp.json()
-        if not data:
-            raise ValueError("Address not found: {}".format(address))
-        return float(data[0]["lat"]), float(data[0]["lon"])  # (lat, lng)
-
-    try:
-        # 1. Geocode all points
-        p1 = get_coords(pickup)
-        p2 = get_coords(destination)
-
-        # Build coordinate string for OSRM: lng,lat pairs separated by semicolons
-        coords_list = ["{},{}".format(p1[1], p1[0])]
-        if extra_stop:
-            ps = get_coords(extra_stop)
-            coords_list.append("{},{}".format(ps[1], ps[0]))
-        coords_list.append("{},{}".format(p2[1], p2[0]))
-        coordinates = ";".join(coords_list)
-
-        # 2. Get driving directions via OSRM
-        route_url = "https://router.project-osrm.org/route/v1/driving/{}".format(coordinates)
-        route_resp = requests.get(
-            route_url,
-            params={"overview": "false"},
-            headers={"User-Agent": "MelbourneChauffeurApp/1.0"},
-            timeout=10,
-        )
-        route_resp.raise_for_status()
-        route_data = route_resp.json()
-
-        if route_data.get("code") != "Ok" or not route_data.get("routes"):
-            raise ValueError("OSRM could not calculate route: {}".format(route_data.get("message", "unknown error")))
-
-        # Distance is in meters, convert to km
-        distance_meters = route_data["routes"][0]["distance"]
-        return {
-            "distance_km": round(distance_meters / 1000, 2),
-            "has_tolls": False,
-        }
-
-    except requests.exceptions.RequestException as e:
-        logger.error("Routing HTTP error: %s", e)
-        raise ValueError("Route calculation failed: {}".format(str(e)))
-    except Exception as e:
-        logger.error("Routing error: %s", e)
-        raise ValueError("Route calculation failed: {}".format(str(e)))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
