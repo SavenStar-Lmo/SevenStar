@@ -30,7 +30,7 @@ STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET','')
 SECRET_KEY = os.environ.get('SECRET_KEY','somethinvcjvflvdhxbvvvccvvvvvbbvsfypb jobdtuvxfghn')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 # ALLOWED_HOSTS = [
 #     'localhost',
