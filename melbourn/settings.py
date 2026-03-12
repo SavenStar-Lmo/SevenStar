@@ -59,7 +59,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     
     # my apps 
-    #'anymail',
+    'anymail',
     'pwa',
     'core',
     'orders',
@@ -254,3 +254,9 @@ ANYMAIL = {
     "RESEND_API_KEY": os.environ.get('RESEND_API_KEY',''),
 }
 DEFAULT_FROM_EMAIL = "SevenStar Management <management@sevenstarlimo.com.au>"
+SERVER_EMAIL = "server@sevenstarlimo.com.au"
+ADMIN_NAME = os.environ.get('ADMIN_NAME')
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
+ADMINS = [
+    (ADMIN_NAME, ADMIN_EMAIL),
+]

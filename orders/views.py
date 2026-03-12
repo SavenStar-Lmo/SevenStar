@@ -2,12 +2,14 @@ import json
 import time
 import datetime
 import logging
+import threading
 import requests
 import stripe
 import googlemaps
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -66,6 +68,94 @@ SERVICE_TYPES = {
         "flat": False,
     },
 }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Admin notification email (async, non-blocking)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _send_order_notification_async(order):
+    """Send admin notification email in a background thread (non-blocking)."""
+    def _send():
+        admin_email = getattr(settings, 'ADMIN_EMAIL', None)
+        if not admin_email:
+            return
+        subject = f"✅ New Booking #{order.id} — {order.passenger_name}"
+        html_message = f"""
+        <div style="font-family: Georgia, serif; max-width: 600px; margin: auto; background: #111; color: #e0e0e0; padding: 32px; border-radius: 8px;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <h1 style="color: #b8902e; font-size: 22px; margin: 0;">SevenStar Limo &amp; Chauffeur</h1>
+            <p style="color: #888; margin: 4px 0 0;">New Booking Confirmed</p>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <tr style="border-bottom: 1px solid #2a2a2a;">
+              <td style="padding: 10px 8px; color: #b8902e; width: 40%;">Order ID</td>
+              <td style="padding: 10px 8px;">#{order.id}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #2a2a2a;">
+              <td style="padding: 10px 8px; color: #b8902e;">Service Type</td>
+              <td style="padding: 10px 8px;">{order.service_type.upper()}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #2a2a2a;">
+              <td style="padding: 10px 8px; color: #b8902e;">Passenger Name</td>
+              <td style="padding: 10px 8px;">{order.passenger_name}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #2a2a2a;">
+              <td style="padding: 10px 8px; color: #b8902e;">Passenger Email</td>
+              <td style="padding: 10px 8px;">{order.passenger_email}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #2a2a2a;">
+              <td style="padding: 10px 8px; color: #b8902e;">Passenger Phone</td>
+              <td style="padding: 10px 8px;">{order.passenger_number}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #2a2a2a;">
+              <td style="padding: 10px 8px; color: #b8902e;">Pickup Address</td>
+              <td style="padding: 10px 8px;">{order.pickup_address}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #2a2a2a;">
+              <td style="padding: 10px 8px; color: #b8902e;">Destination</td>
+              <td style="padding: 10px 8px;">{order.destination_address}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #2a2a2a;">
+              <td style="padding: 10px 8px; color: #b8902e;">Pickup Date</td>
+              <td style="padding: 10px 8px;">{order.pickup_date}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #2a2a2a;">
+              <td style="padding: 10px 8px; color: #b8902e;">Pickup Time</td>
+              <td style="padding: 10px 8px;">{order.pickup_time}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #2a2a2a;">
+              <td style="padding: 10px 8px; color: #b8902e;">Vehicle</td>
+              <td style="padding: 10px 8px;">{order.limo_service_type}</td>
+            </tr>
+            {"<tr style='border-bottom: 1px solid #2a2a2a;'><td style='padding: 10px 8px; color: #b8902e;'>Additional Stop</td><td style='padding: 10px 8px;'>" + order.additional_stop + "</td></tr>" if order.additional_stop else ""}
+            {"<tr style='border-bottom: 1px solid #2a2a2a;'><td style='padding: 10px 8px; color: #b8902e;'>Flight Number</td><td style='padding: 10px 8px;'>" + order.flight_number + "</td></tr>" if order.flight_number else ""}
+            {"<tr style='border-bottom: 1px solid #2a2a2a;'><td style='padding: 10px 8px; color: #b8902e;'>Special Instructions</td><td style='padding: 10px 8px;'>" + order.special_instruction + "</td></tr>" if order.special_instruction else ""}
+            <tr style="background: #1a1a1a;">
+              <td style="padding: 14px 8px; color: #b8902e; font-size: 16px; font-weight: bold;">Amount Paid</td>
+              <td style="padding: 14px 8px; color: #ffffff; font-size: 16px; font-weight: bold;">A${order.total_price}</td>
+            </tr>
+          </table>
+
+          <p style="text-align: center; color: #555; font-size: 12px; margin-top: 24px;">
+            SevenStar Limo &amp; Chauffeur Melbourne · Automated Notification
+          </p>
+        </div>
+        """
+        try:
+            send_mail(
+                subject=subject,
+                message=f"New booking #{order.id} from {order.passenger_name}. Amount: A${order.total_price}.",
+                from_email=settings.SERVER_EMAIL,
+                recipient_list=[admin_email],
+                html_message=html_message,
+                fail_silently=True,
+            )
+        except Exception as exc:
+            logger.error("Failed to send order notification email for order #%s: %s", order.id, exc)
+
+    threading.Thread(target=_send, daemon=True).start()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -520,8 +610,10 @@ def order_status(request, order_id):
         try:
             session = stripe.checkout.Session.retrieve(session_id)
             if session.payment_status == "paid":
-                Order.objects.filter(id=order.id, paid=False).update(paid=True)
+                updated = Order.objects.filter(id=order.id, paid=False).update(paid=True)
                 order.refresh_from_db()
+                if updated:
+                    _send_order_notification_async(order)
         except stripe.error.StripeError as exc:
             logger.warning("Could not verify Stripe session %s: %s", session_id, exc)
 
@@ -553,6 +645,9 @@ def stripe_webhook(request):
             updated = Order.objects.filter(id=order_id, paid=False).update(paid=True)
             if updated:
                 logger.info("Order #%s marked paid via webhook.", order_id)
+                order_obj = Order.objects.filter(id=order_id).first()
+                if order_obj:
+                    _send_order_notification_async(order_obj)
 
     elif event["type"] == "checkout.session.expired":
         order_id = event["data"]["object"].get("metadata", {}).get("order_id")
