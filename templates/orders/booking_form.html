@@ -360,7 +360,11 @@
                         </svg>
                     </div>
                     <span class="bf__vi" aria-hidden="true">
-                        {% if forloop.first %}🚗{% elif forloop.counter == 2 %}🚙{% elif forloop.counter == 3 %}🚐{% else %}🚌{% endif %}
+                        {% if r.img_url %}
+                            <img src="{{ r.img_url }}" alt="{{ r.name }}" class="bf__vimg">
+                        {% else %}
+                            {% if forloop.first %}🚗{% elif forloop.counter == 2 %}🚙{% elif forloop.counter == 3 %}🚐{% else %}🚌{% endif %}
+                        {% endif %}
                     </span>
                     <div class="bf__vname">{{ r.name }}</div>
                     <div class="bf__vmeta">Up to {{ r.max_passengers }} passengers &nbsp;·&nbsp; {{ r.max_bags }} bags</div>
@@ -400,7 +404,7 @@
             </div>
             <div class="bf__tg" role="group" aria-label="Optional add-ons">
 
-                <div class="bf__ti{% if form_data.baby_seat %} on{% endif %}"
+                <div class="bf__ti bf__ti--baby{% if form_data.baby_seat %} on{% endif %}"
                      id="bfBabySeatToggle"
                      onclick="bfToggle('bfBabySeatToggle','bfBabySeatCb')"
                      role="checkbox"
@@ -408,7 +412,15 @@
                      tabindex="0"
                      aria-label="Baby / child safety seat — add $20.00">
                     <div class="bf__tileft">
-                        <span class="bf__ticon" aria-hidden="true">🍼</span>
+                        <div class="bf__baby-scene" aria-hidden="true">
+                            <div class="bf__baby-chair">
+                                <div class="bf__baby-seat-back"></div>
+                                <div class="bf__baby-seat-base"></div>
+                                <div class="bf__baby-tray"></div>
+                                <div class="bf__baby-harness"></div>
+                            </div>
+                            <div class="bf__baby-emoji">👶</div>
+                        </div>
                         <div class="bf__ttxt">
                             <strong>Baby / Child Seat</strong>
                             <span>Approved safety seat — +$20.00</span>
@@ -443,7 +455,6 @@
             </div>
         </div>
 
-}
         <div class="bf__card">
             <div class="bf__sh">
                 <div class="bf__sn" aria-hidden="true">5</div>

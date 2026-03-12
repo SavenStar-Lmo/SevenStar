@@ -257,7 +257,11 @@
     box-shadow: 0 0 0 3px var(--bf-gold-ring);
 }
 .bf__vc input[type=radio] { display: none; }
-.bf__vi { font-size: 1.8rem; margin-bottom: .5rem; display: block; }
+.bf__vi {
+    font-size: 1.8rem; margin-bottom: .5rem;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 48px;
+}
 .bf__vname { font-family: var(--bf-serif); font-size: .95rem; font-weight: 500; color: var(--bf-ink); }
 .bf__vmeta { font-size: .72rem; color: var(--bf-ink-muted); margin-top: .2rem; line-height: 1.4; }
 .bf__vprice { font-size: .72rem; color: var(--bf-gold-dk); font-weight: 600; margin-top: .4rem; min-height: 14px; }
@@ -267,6 +271,16 @@
     display: none; align-items: center; justify-content: center;
 }
 .bf__vc.sel .bf__vchk { display: flex; }
+
+/* vehicle image from img_url */
+.bf__vimg {
+    width: 80px;
+    height: 48px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+    border-radius: 4px;
+}
 
 /* upgrade notice */
 .bf__upn {
@@ -302,6 +316,109 @@
 }
 .bf__ti.on .bf__tth { transform: translateX(18px); }
 .bf__ti input { display: none; }
+
+/* ── Baby seat toggle — special scene ───────────────────── */
+.bf__ti--baby { padding: 1rem 1.1rem; }
+.bf__ti--baby .bf__tileft { align-items: center; gap: 1.1rem; }
+
+.bf__baby-scene {
+    position: relative;
+    width: 58px;
+    height: 64px;
+    flex-shrink: 0;
+}
+
+.bf__baby-chair {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 46px;
+    height: 50px;
+}
+
+/* seat back */
+.bf__baby-seat-back {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 34px;
+    height: 38px;
+    background: linear-gradient(155deg, #d4aa4a 0%, #b8902e 60%, #9a7520 100%);
+    border-radius: 7px 7px 3px 3px;
+    box-shadow: 0 3px 10px rgba(184,144,46,.35), inset 0 1px 0 rgba(255,255,255,.2);
+}
+
+/* padding on seat back */
+.bf__baby-seat-back::after {
+    content: '';
+    position: absolute;
+    top: 5px; left: 4px; right: 4px;
+    height: 22px;
+    background: rgba(255,255,255,.1);
+    border-radius: 4px 4px 2px 2px;
+}
+
+/* seat base */
+.bf__baby-seat-base {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 42px;
+    height: 16px;
+    background: linear-gradient(180deg, #c8a040 0%, #9a7520 100%);
+    border-radius: 4px 4px 7px 7px;
+    box-shadow: 0 4px 8px rgba(0,0,0,.18);
+}
+
+/* tray / bumper bar */
+.bf__baby-tray {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 44px;
+    height: 6px;
+    background: linear-gradient(180deg, #e0b84a 0%, #b8902e 100%);
+    border-radius: 3px;
+    box-shadow: 0 2px 5px rgba(0,0,0,.15);
+    z-index: 2;
+}
+
+/* harness straps */
+.bf__baby-harness {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 20px;
+    border-left: 2.5px solid rgba(255,255,255,.5);
+    border-right: 2.5px solid rgba(255,255,255,.5);
+    border-top: none;
+    border-radius: 0 0 5px 5px;
+    z-index: 3;
+}
+
+/* the baby emoji — sitting on top of chair */
+.bf__baby-emoji {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2rem;
+    line-height: 1;
+    z-index: 4;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,.18));
+    transition: transform .2s var(--bf-ease);
+}
+
+/* gentle bounce when active */
+.bf__ti--baby.on .bf__baby-emoji {
+    animation: bf-baby-bob 1.6s ease-in-out infinite;
+}
 
 /* ── Error banner ────────────────────────────────────────── */
 .bf__err {
@@ -352,4 +469,8 @@
 }
 
 /* ── Animations ──────────────────────────────────────────── */
-@keyframes bf-spin { to { transform: rotate(360deg); } }
+@keyframes bf-spin     { to { transform: rotate(360deg); } }
+@keyframes bf-baby-bob {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50%       { transform: translateX(-50%) translateY(-4px); }
+}

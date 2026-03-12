@@ -564,7 +564,7 @@ def stripe_webhook(request):
 
 @staff_member_required
 def finances_view(request):
-    return render(request, "finances.html")
+    return render(request, "orders/finances.html")
 
 
 @staff_member_required

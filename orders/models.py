@@ -73,6 +73,7 @@ class Order(models.Model):
 
 class Rates(models.Model):
     name = models.CharField(default='Sedan 1-5')
+    img_url = models.URLField(null=True,blank=True)
     max_passangers = models.IntegerField(default=5)
     max_bags = models.IntegerField(default=5)
     base_price = models.DecimalField(max_digits=6,decimal_places=2,default=30)
@@ -80,8 +81,13 @@ class Rates(models.Model):
     stop = models.DecimalField(max_digits=6,decimal_places=2,default=15)
     th_rate = models.DecimalField(max_digits=6,decimal_places=2,default=200)
     oh_rate = models.DecimalField(max_digits=6,decimal_places=2,default=100)
+    
+    def __str__(self):
+        return self.name
 
 class Discount(models.Model):
     th_discount = models.DecimalField(max_digits=7,decimal_places=3,default=0.025)
     return_discount = models.DecimalField(max_digits=7,decimal_places=3,default=0.05)
     extra_charge_for_down_hours = models.DecimalField(max_digits=7,decimal_places=3,default=0.3)
+    def __str__(self):
+        return "Manage Discounts & Extra Hour charge rates"

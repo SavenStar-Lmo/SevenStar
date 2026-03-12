@@ -30,7 +30,7 @@ STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET','')
 SECRET_KEY = os.environ.get('SECRET_KEY','somethinvcjvflvdhxbvvvccvvvvvbbvsfypb jobdtuvxfghn')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 # ALLOWED_HOSTS = [
 #     'localhost',
@@ -59,7 +59,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     
     # my apps 
-    'anymail',
+    #'anymail',
     'pwa',
     'core',
     'orders',
@@ -247,7 +247,7 @@ PWA_SERVICE_WORKER_PATH = BASE_DIR / 'sw.js'
 # EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER','')
 # EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD','')
 # DEFAULT_FROM_EMAIL = ' SevenStar Limo <management@sevenstarlimo.com.au>'
-
+# 
 EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
 
 ANYMAIL = {
