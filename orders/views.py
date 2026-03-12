@@ -69,91 +69,194 @@ SERVICE_TYPES = {
     },
 }
 
+# Service types that do NOT have a meaningful destination to show the customer
+_FLAT_SERVICE_TYPES = {"oh", "th"}
+
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Admin notification email (async, non-blocking)
+# Notification emails (async, non-blocking)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _send_order_notification_async(order):
-    """Send admin notification email in a background thread (non-blocking)."""
+def _send_notifications_async(order):
+    """
+    Fire both the admin notification and the customer confirmation email
+    in a single background thread so neither blocks the HTTP response.
+    """
     def _send():
-        admin_email = getattr(settings, 'ADMIN_EMAIL', None)
-        if not admin_email:
-            return
-        subject = f"✅ New Booking #{order.id} — {order.passenger_name}"
-        html_message = f"""
-        <div style="font-family: Georgia, serif; max-width: 600px; margin: auto; background: #111; color: #e0e0e0; padding: 32px; border-radius: 8px;">
-          <div style="text-align: center; margin-bottom: 24px;">
-            <h1 style="color: #b8902e; font-size: 22px; margin: 0;">SevenStar Limo &amp; Chauffeur</h1>
-            <p style="color: #888; margin: 4px 0 0;">New Booking Confirmed</p>
-          </div>
+        reference        = str(order.id).zfill(6)
+        show_destination = order.service_type not in _FLAT_SERVICE_TYPES
+        svc_label        = SERVICE_TYPES.get(order.service_type, {}).get("label", order.service_type.upper())
 
-          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-            <tr style="border-bottom: 1px solid #2a2a2a;">
-              <td style="padding: 10px 8px; color: #b8902e; width: 40%;">Order ID</td>
-              <td style="padding: 10px 8px;">#{order.id}</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #2a2a2a;">
-              <td style="padding: 10px 8px; color: #b8902e;">Service Type</td>
-              <td style="padding: 10px 8px;">{order.service_type.upper()}</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #2a2a2a;">
-              <td style="padding: 10px 8px; color: #b8902e;">Passenger Name</td>
-              <td style="padding: 10px 8px;">{order.passenger_name}</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #2a2a2a;">
-              <td style="padding: 10px 8px; color: #b8902e;">Passenger Email</td>
-              <td style="padding: 10px 8px;">{order.passenger_email}</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #2a2a2a;">
-              <td style="padding: 10px 8px; color: #b8902e;">Passenger Phone</td>
-              <td style="padding: 10px 8px;">{order.passenger_number}</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #2a2a2a;">
-              <td style="padding: 10px 8px; color: #b8902e;">Pickup Address</td>
-              <td style="padding: 10px 8px;">{order.pickup_address}</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #2a2a2a;">
-              <td style="padding: 10px 8px; color: #b8902e;">Destination</td>
-              <td style="padding: 10px 8px;">{order.destination_address}</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #2a2a2a;">
-              <td style="padding: 10px 8px; color: #b8902e;">Pickup Date</td>
-              <td style="padding: 10px 8px;">{order.pickup_date}</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #2a2a2a;">
-              <td style="padding: 10px 8px; color: #b8902e;">Pickup Time</td>
-              <td style="padding: 10px 8px;">{order.pickup_time}</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #2a2a2a;">
-              <td style="padding: 10px 8px; color: #b8902e;">Vehicle</td>
-              <td style="padding: 10px 8px;">{order.limo_service_type}</td>
-            </tr>
-            {"<tr style='border-bottom: 1px solid #2a2a2a;'><td style='padding: 10px 8px; color: #b8902e;'>Additional Stop</td><td style='padding: 10px 8px;'>" + order.additional_stop + "</td></tr>" if order.additional_stop else ""}
-            {"<tr style='border-bottom: 1px solid #2a2a2a;'><td style='padding: 10px 8px; color: #b8902e;'>Flight Number</td><td style='padding: 10px 8px;'>" + order.flight_number + "</td></tr>" if order.flight_number else ""}
-            {"<tr style='border-bottom: 1px solid #2a2a2a;'><td style='padding: 10px 8px; color: #b8902e;'>Special Instructions</td><td style='padding: 10px 8px;'>" + order.special_instruction + "</td></tr>" if order.special_instruction else ""}
-            <tr style="background: #1a1a1a;">
-              <td style="padding: 14px 8px; color: #b8902e; font-size: 16px; font-weight: bold;">Amount Paid</td>
-              <td style="padding: 14px 8px; color: #ffffff; font-size: 16px; font-weight: bold;">A${order.total_price}</td>
-            </tr>
-          </table>
+        # ── shared style tokens ───────────────────────────────────────────
+        BG      = "#111111"
+        SURFACE = "#1a1a1a"
+        GOLD    = "#b8902e"
+        TEXT    = "#e0e0e0"
+        MUTED   = "#888888"
+        BORDER  = "#2a2a2a"
 
-          <p style="text-align: center; color: #555; font-size: 12px; margin-top: 24px;">
-            SevenStar Limo &amp; Chauffeur Melbourne · Automated Notification
-          </p>
-        </div>
-        """
-        try:
-            send_mail(
-                subject=subject,
-                message=f"New booking #{order.id} from {order.passenger_name}. Amount: A${order.total_price}.",
-                from_email=settings.SERVER_EMAIL,
-                recipient_list=[admin_email],
-                html_message=html_message,
-                fail_silently=True,
+        def _row(label, value, highlight=False):
+            val_style = (
+                f"padding:10px 8px;color:{'#ffffff' if highlight else TEXT};"
+                f"{'font-size:16px;font-weight:bold;' if highlight else ''}"
             )
-        except Exception as exc:
-            logger.error("Failed to send order notification email for order #%s: %s", order.id, exc)
+            lbl_style = (
+                f"padding:10px 8px;color:{GOLD};width:42%;"
+                f"{'font-size:16px;font-weight:bold;' if highlight else ''}"
+            )
+            row_bg = f"background:{SURFACE};" if highlight else ""
+            return (
+                f"<tr style='border-bottom:1px solid {BORDER};{row_bg}'>"
+                f"<td style='{lbl_style}'>{label}</td>"
+                f"<td style='{val_style}'>{value}</td>"
+                f"</tr>"
+            )
+
+        def _table(*rows):
+            return (
+                f"<table style='width:100%;border-collapse:collapse;font-size:14px;'>"
+                + "".join(rows)
+                + "</table>"
+            )
+
+        # ── ADMIN email ───────────────────────────────────────────────────
+        admin_email = getattr(settings, 'ADMIN_EMAIL', None)
+        if admin_email:
+            admin_rows = [
+                _row("Reference",       f"#{reference}"),
+                _row("Service Type",    svc_label),
+                _row("Passenger Name",  order.passenger_name),
+                _row("Passenger Email", order.passenger_email),
+                _row("Passenger Phone", order.passenger_number),
+                _row("Pickup Address",  order.pickup_address),
+            ]
+            if show_destination:
+                admin_rows.append(_row("Destination", order.destination_address))
+            admin_rows += [
+                _row("Pickup Date", str(order.pickup_date)),
+                _row("Pickup Time", str(order.pickup_time)),
+                _row("Vehicle",     order.limo_service_type),
+            ]
+            if order.additional_stop:
+                admin_rows.append(_row("Additional Stop", order.additional_stop))
+            if order.flight_number:
+                admin_rows.append(_row("Flight Number", order.flight_number))
+            if order.special_instruction:
+                admin_rows.append(_row("Special Instructions", order.special_instruction))
+            admin_rows.append(_row("Amount Paid", f"A${order.total_price}", highlight=True))
+
+            admin_html = (
+                f"<div style='font-family:Georgia,serif;max-width:600px;margin:auto;"
+                f"background:{BG};color:{TEXT};padding:32px;border-radius:8px;'>"
+                f"<div style='text-align:center;margin-bottom:24px;'>"
+                f"<h1 style='color:{GOLD};font-size:22px;margin:0;'>SevenStar Limo &amp; Chauffeur</h1>"
+                f"<p style='color:{MUTED};margin:4px 0 0;'>New Booking Confirmed</p>"
+                f"</div>"
+                + _table(*admin_rows)
+                + f"<p style='text-align:center;color:#555;font-size:12px;margin-top:24px;'>"
+                f"SevenStar Limo &amp; Chauffeur Melbourne &middot; Automated Notification</p>"
+                f"</div>"
+            )
+
+            try:
+                send_mail(
+                    subject=f"New Booking #{reference} — {order.passenger_name}",
+                    message=f"New booking #{reference} from {order.passenger_name}. Amount: A${order.total_price}.",
+                    from_email=settings.SERVER_EMAIL,
+                    recipient_list=[admin_email],
+                    html_message=admin_html,
+                    fail_silently=True,
+                )
+            except Exception as exc:
+                logger.error("Failed to send admin notification for order #%s: %s", order.id, exc)
+
+        # ── CUSTOMER email ────────────────────────────────────────────────
+        customer_email = order.passenger_email
+        if customer_email:
+            customer_rows = [
+                _row("Reference No.", f"#{reference}"),
+                _row("Service",       svc_label),
+                _row("Name",          order.passenger_name),
+                _row("Pickup Address", order.pickup_address),
+            ]
+            if show_destination:
+                customer_rows.append(_row("Destination", order.destination_address))
+            customer_rows += [
+                _row("Date",    str(order.pickup_date)),
+                _row("Time",    str(order.pickup_time)),
+                _row("Vehicle", order.limo_service_type),
+            ]
+            if order.flight_number:
+                customer_rows.append(_row("Flight Number", order.flight_number))
+            if order.additional_stop:
+                customer_rows.append(_row("Additional Stop", order.additional_stop))
+            if order.special_instruction:
+                customer_rows.append(_row("Special Instructions", order.special_instruction))
+            customer_rows.append(_row("Amount Paid", f"A${order.total_price}", highlight=True))
+
+            plain_destination = (
+                f"Destination: {order.destination_address}\n" if show_destination else ""
+            )
+
+            customer_html = (
+                f"<div style='font-family:Georgia,serif;max-width:600px;margin:auto;"
+                f"background:{BG};color:{TEXT};padding:32px;border-radius:8px;'>"
+
+                # header
+                f"<div style='text-align:center;margin-bottom:28px;'>"
+                f"<h1 style='color:{GOLD};font-size:24px;margin:0;letter-spacing:1px;'>"
+                f"SevenStar Limo &amp; Chauffeur</h1>"
+                f"<p style='color:{MUTED};margin:6px 0 0;font-size:13px;"
+                f"letter-spacing:2px;text-transform:uppercase;'>Booking Confirmed</p>"
+                f"</div>"
+
+                # greeting
+                f"<p style='color:{TEXT};font-size:15px;margin:0 0 20px;'>"
+                f"Dear {order.passenger_name},<br><br>"
+                f"Thank you for choosing SevenStar. Your booking has been confirmed and "
+                f"payment received. Please find your booking details below."
+                f"</p>"
+
+                # details table
+                + _table(*customer_rows)
+
+                # reference callout
+                + f"<div style='margin-top:24px;padding:16px;background:{SURFACE};"
+                f"border-left:3px solid {GOLD};border-radius:4px;'>"
+                f"<p style='margin:0;color:{MUTED};font-size:13px;line-height:1.6;'>"
+                f"Please save your reference number "
+                f"<strong style='color:{GOLD};'>#{reference}</strong> for any enquiries. "
+                f"Our driver will contact you prior to your pickup time."
+                f"</p></div>"
+
+                # footer
+                + f"<p style='text-align:center;color:#555;font-size:12px;margin-top:28px;'>"
+                f"SevenStar Limo &amp; Chauffeur Melbourne<br>"
+                f"This is an automated confirmation — please do not reply to this email."
+                f"</p></div>"
+            )
+
+            try:
+                send_mail(
+                    subject=f"Booking Confirmed — Reference #{reference}",
+                    message=(
+                        f"Dear {order.passenger_name},\n\n"
+                        f"Your booking has been confirmed.\n"
+                        f"Reference: #{reference}\n"
+                        f"Service: {svc_label}\n"
+                        f"Pickup: {order.pickup_address}\n"
+                        + plain_destination
+                        + f"Date: {order.pickup_date}\n"
+                        f"Amount Paid: A${order.total_price}\n\n"
+                        f"Thank you for choosing SevenStar Limo & Chauffeur."
+                    ),
+                    from_email=settings.SERVER_EMAIL,
+                    recipient_list=[customer_email],
+                    html_message=customer_html,
+                    fail_silently=True,
+                )
+            except Exception as exc:
+                logger.error("Failed to send customer confirmation for order #%s: %s", order.id, exc)
 
     threading.Thread(target=_send, daemon=True).start()
 
@@ -613,7 +716,7 @@ def order_status(request, order_id):
                 updated = Order.objects.filter(id=order.id, paid=False).update(paid=True)
                 order.refresh_from_db()
                 if updated:
-                    _send_order_notification_async(order)
+                    _send_notifications_async(order)
         except stripe.error.StripeError as exc:
             logger.warning("Could not verify Stripe session %s: %s", session_id, exc)
 
@@ -647,7 +750,7 @@ def stripe_webhook(request):
                 logger.info("Order #%s marked paid via webhook.", order_id)
                 order_obj = Order.objects.filter(id=order_id).first()
                 if order_obj:
-                    _send_order_notification_async(order_obj)
+                    _send_notifications_async(order_obj)
 
     elif event["type"] == "checkout.session.expired":
         order_id = event["data"]["object"].get("metadata", {}).get("order_id")
