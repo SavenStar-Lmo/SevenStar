@@ -276,6 +276,7 @@ def _get_rates():
         return [
             {
                 "name":           r.name,
+                "img_url":        r.img_url or "",
                 "max_passengers": r.max_passangers,
                 "max_bags":       r.max_bags,
                 "base_price":     float(r.base_price),
@@ -390,7 +391,7 @@ def calculate_price(
             return 1.0
         try:
             hour = pickup_time.hour if hasattr(pickup_time, "hour") else int(str(pickup_time).split(":")[0])
-            if hour < 9:
+            if hour < 6:
                 return 1.0 + night_surcharge_rate
         except (AttributeError, ValueError):
             pass
@@ -760,55 +761,188 @@ def stripe_webhook(request):
     return HttpResponse(status=200)
 
 
-@staff_member_required
-def finances_view(request):
-    return render(request, "orders/finances.html")
 
 
-@staff_member_required
-def finances_data(request):
-    tab   = request.GET.get("tab", "this_month")
+
+
+TAB_CHOICES = [
+    ("today",      "Today"),
+    ("yesterday",  "Yesterday"),
+    ("this_week",  "This Week"),
+    ("prev_week",  "Prev Week"),
+    ("this_month", "This Month"),
+    ("prev_month", "Prev Month"),
+    ("this_year",  "This Year"),
+    ("prev_year",  "Prev Year"),
+    ("lifetime",   "All Time"),
+    ("custom",     "Custom"),
+]
+
+# Tabs that get a visual left-separator (start of a logical group)
+TAB_SEPARATORS = {"this_week", "this_month", "this_year", "lifetime", "custom"}
+
+
+def _date_range_for_tab(tab, from_date=None, to_date=None):
     today = datetime.date.today()
 
-    if tab == "this_month":
-        qs = Order.objects.filter(
-            paid=True,
-            pickup_date__year=today.year,
-            pickup_date__month=today.month,
-        )
+    if tab == "today":
+        return today, today
+
+    elif tab == "yesterday":
+        d = today - datetime.timedelta(days=1)
+        return d, d
+
+    elif tab == "this_week":
+        mon = today - datetime.timedelta(days=today.weekday())
+        return mon, mon + datetime.timedelta(days=6)
+
+    elif tab == "prev_week":
+        mon = today - datetime.timedelta(days=today.weekday() + 7)
+        return mon, mon + datetime.timedelta(days=6)
+
+    elif tab == "this_month":
+        first = today.replace(day=1)
+        if first.month == 12:
+            last = first.replace(day=31)
+        else:
+            last = first.replace(month=first.month + 1, day=1) - datetime.timedelta(days=1)
+        return first, last
 
     elif tab == "prev_month":
-        first_of_this = today.replace(day=1)
-        last_of_prev  = first_of_this - datetime.timedelta(days=1)
-        first_of_prev = last_of_prev.replace(day=1)
-        qs = Order.objects.filter(
-            paid=True,
-            pickup_date__range=(first_of_prev, last_of_prev),
-        )
+        first_this = today.replace(day=1)
+        last_prev  = first_this - datetime.timedelta(days=1)
+        return last_prev.replace(day=1), last_prev
+
+    elif tab == "this_year":
+        return today.replace(month=1, day=1), today.replace(month=12, day=31)
+
+    elif tab == "prev_year":
+        y = today.year - 1
+        return datetime.date(y, 1, 1), datetime.date(y, 12, 31)
 
     elif tab == "custom":
-        frm = request.GET.get("from")
-        to  = request.GET.get("to")
-        if not frm or not to:
-            return JsonResponse({"error": "Missing date range."}, status=400)
-        qs = Order.objects.filter(
-            paid=True,
-            pickup_date__range=(frm, to),
-        )
+        return from_date, to_date  # already parsed by caller
 
     else:  # lifetime
+        return None, None
+
+
+def _period_label(tab, from_date, to_date):
+    MONTHS = ["Jan","Feb","Mar","Apr","May","Jun",
+              "Jul","Aug","Sep","Oct","Nov","Dec"]
+
+    def fmt(d):
+        if not d:
+            return "—"
+        return f"{d.day} {MONTHS[d.month - 1]} {d.year}"
+
+    today = datetime.date.today()
+
+    if tab == "today":
+        return f"Today — {fmt(today)}"
+    elif tab == "yesterday":
+        return f"Yesterday — {fmt(today - datetime.timedelta(days=1))}"
+    elif tab == "this_week":
+        return f"This Week  {fmt(from_date)} → {fmt(to_date)}"
+    elif tab == "prev_week":
+        return f"Previous Week  {fmt(from_date)} → {fmt(to_date)}"
+    elif tab == "this_month":
+        return today.strftime("%B %Y")
+    elif tab == "prev_month":
+        d = today.replace(day=1) - datetime.timedelta(days=1)
+        return d.strftime("%B %Y")
+    elif tab == "this_year":
+        return f"Year {today.year}"
+    elif tab == "prev_year":
+        return f"Year {today.year - 1}"
+    elif tab == "lifetime":
+        return "All Time"
+    elif tab == "custom" and from_date and to_date:
+        return f"{fmt(from_date)}  →  {fmt(to_date)}"
+    return ""
+
+
+def _build_context(request, tab, from_date, to_date, custom_from="", custom_to=""):
+    if from_date and to_date:
+        qs = Order.objects.filter(paid=True, pickup_date__range=(from_date, to_date))
+    else:
         qs = Order.objects.filter(paid=True)
 
     orders = []
-    for o in qs.order_by("-pickup_date"):
+    total_earnings = total_cost = 0
+
+    for o in qs.order_by("-pickup_date", "-created_at"):
+        price  = float(o.total_price or 0)
+        cost   = float(o.driver_fee  or 0)
+        profit = price - cost
+        total_earnings += price
+        total_cost     += cost
         orders.append({
             "id":              o.pk,
-            "passenger_name":  o.passenger_name,
-            "passenger_email": o.passenger_email,
-            "service_type":    o.service_type,
+            "passenger_name":  o.passenger_name  or "",
+            "passenger_email": o.passenger_email or "",
+            "service_type":    o.get_service_type_display(),
             "pickup_date":     str(o.pickup_date),
-            "total_price":     float(o.total_price or 0),
-            "driver_fee":      float(o.driver_fee  or 0),
+            "total_price":     price,
+            "driver_fee":      cost,
+            "profit":          profit,
         })
 
-    return JsonResponse({"orders": orders})
+    total_profit = total_earnings - total_cost
+
+    # Build tab list with separator flag
+    tabs = [
+        {
+            "key":       key,
+            "label":     label,
+            "active":    key == tab,
+            "separator": key in TAB_SEPARATORS,
+        }
+        for key, label in TAB_CHOICES
+    ]
+
+    return {
+        "orders":          orders,
+        "tabs":            tabs,
+        "active_tab":      tab,
+        "period_label":    _period_label(tab, from_date, to_date),
+        "custom_from":     custom_from,
+        "custom_to":       custom_to,
+        "total_earnings":  total_earnings,
+        "total_cost":      total_cost,
+        "total_profit":    total_profit,
+        "order_count":     len(orders),
+    }
+
+
+@staff_member_required
+def finances_view(request):
+    """GET — initial load, defaults to This Week."""
+    today = datetime.date.today()
+    mon   = today - datetime.timedelta(days=today.weekday())
+    sun   = mon + datetime.timedelta(days=6)
+    ctx   = _build_context(request, "this_week", mon, sun)
+    return render(request, "orders/finances.html", ctx)
+
+
+@staff_member_required
+@require_POST
+def finances_data(request):
+    """POST — re-render with the chosen tab's data."""
+    tab         = request.POST.get("tab", "this_week")
+    custom_from = request.POST.get("custom_from", "").strip()
+    custom_to   = request.POST.get("custom_to",   "").strip()
+
+    from_date = to_date = None
+    if tab == "custom":
+        try:
+            from_date = datetime.date.fromisoformat(custom_from)
+            to_date   = datetime.date.fromisoformat(custom_to)
+            if from_date > to_date:
+                from_date, to_date = to_date, from_date  # swap if reversed
+        except (ValueError, TypeError):
+            tab = "this_week"
+
+    from_date, to_date = _date_range_for_tab(tab, from_date, to_date)
+    ctx = _build_context(request, tab, from_date, to_date, custom_from, custom_to)
+    return render(request, "orders/finances.html", ctx)
