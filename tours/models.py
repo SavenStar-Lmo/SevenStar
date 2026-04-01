@@ -20,74 +20,66 @@ TOUR_TYPE_CHOICES = [
 
 
 class TourBooking(models.Model):
-    # Owner
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+    """
+    REPLACE your existing TourBooking with this schema.
+    Key changes:
+      - number_of_bags  → REMOVED
+      - selected_car    → FK to TourCar (nullable for legacy rows)
+      - paid / stripe_* → REMOVED (inquiry flow, no payment)
+      - additional_stops → new JSON/text field
+    """
+    user                  = models.ForeignKey("auth.User", on_delete=models.CASCADE, related_name="tour_bookings")
+    tour_type             = models.CharField(max_length=60)
+    passenger_name        = models.CharField(max_length=180)
+    passenger_number      = models.CharField(max_length=40)
+    passenger_email       = models.EmailField(blank=True)
+    number_of_passengers  = models.PositiveSmallIntegerField(default=1)
+    selected_car          = models.ForeignKey(
+        TourCar,
         on_delete=models.SET_NULL,
         null=True, blank=True,
-        related_name="tour_bookings",
+        related_name="bookings",
+        help_text="Vehicle chosen by the customer",
     )
-
-    # Tour type
-    tour_type = models.CharField(max_length=30, choices=TOUR_TYPE_CHOICES, default="yarra_valley")
-
-    # Passenger
-    passenger_name   = models.CharField(max_length=200)
-    passenger_number = models.CharField(max_length=30)
-    passenger_email  = models.EmailField()
-
-    # Trip details
-    number_of_passengers = models.IntegerField(default=2)
-    number_of_bags       = models.IntegerField(default=2)
-    pickup_address       = models.CharField(max_length=500)
-    booking_date         = models.DateField(default=datetime.date.today)
-    booking_time         = models.TimeField(default=timezone.now)
-    special_instruction  = models.TextField(null=True, blank=True)
-
-    # Payment
-    total_price              = models.DecimalField(max_digits=10, decimal_places=2)
-    paid                     = models.BooleanField(default=False)
-    stripe_payment_intent_id = models.CharField(max_length=200, blank=True)
-
-    # Meta
-    created_at = models.DateTimeField(auto_now_add=True)
+    pickup_address        = models.CharField(max_length=300)
+    additional_stops      = models.TextField(blank=True, help_text="Newline-separated additional stops")
+    booking_date          = models.DateField()
+    booking_time          = models.TimeField()
+    special_instruction   = models.TextField(blank=True, null=True)
+    created_at            = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["-created_at"]
+        verbose_name = "Tour Inquiry"
+        verbose_name_plural = "Tour Inquiries"
 
     def __str__(self):
-        return (
-            f"TourBooking #{self.pk} [{self.get_tour_type_display()}] "
-            f"— {self.passenger_name} ({self.booking_date})"
-        )
+        return f"#{str(self.id).zfill(6)} — {self.passenger_name
 
 
-class TourPrice(models.Model):
+
+class TourCar(models.Model):
     """
-    Admin-editable price for each tour type.
-    One row per tour type. Create via Django admin.
+    A vehicle option selectable during tour booking.
+    Managed entirely from the Django admin.
     """
-    tour_type = models.CharField(
-        max_length=30,
-        choices=TOUR_TYPE_CHOICES,
-        unique=True,
-    )
-    price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=250.00,
-        help_text="Price per booking (AUD). Stripe 3% fee is added on top.",
-    )
-    price_note = models.CharField(
-        max_length=200,
-        blank=True,
-        help_text="Optional note shown to customer, e.g. 'per person' or 'per group up to 7'.",
-    )
+    name               = models.CharField(max_length=120, help_text="e.g. Mercedes S-Class")
+    description        = models.CharField(max_length=255, blank=True, help_text="Short tagline shown on the card")
+    image              = models.ImageField(upload_to="tour_cars/", blank=True, null=True, help_text="Car photo")
+    max_passengers     = models.PositiveSmallIntegerField(default=4, help_text="Maximum passengers this vehicle seats")
+    display_order      = models.PositiveSmallIntegerField(default=0, help_text="Lower = shown first")
+    is_active          = models.BooleanField(default=True)
 
     class Meta:
-        ordering = ["tour_type"]
-        verbose_name = "Tour Price"
-        verbose_name_plural = "Tour Prices"
+        ordering = ["display_order", "name"]
+        verbose_name = "Tour Vehicle"
+        verbose_name_plural = "Tour Vehicles"
 
     def __str__(self):
-        return f"{self.get_tour_type_display()} — A${self.price}"
+        return f"{self.name} (max {self.max_passengers} pax)"
+
+    @property
+    def image_url(self):
+        if self.image:
+            return self.image.url
+        return None

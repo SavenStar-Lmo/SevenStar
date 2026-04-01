@@ -1,420 +1,261 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Booking Confirmed — {{ booking.get_tour_type_display }} | SevenStar Limo{% endblock %}
+{% block title %}Inquiry Confirmed | SevenStar Limo Melbourne{% endblock %}
 {% block meta_robots %}noindex, nofollow{% endblock %}
 
 {% block extra_css %}
 <style>
-/* ════════════════════════════════════════════════════════════════
-   TOUR CONFIRMED — tc__ prefix
-   Scoped under [data-page="tour-confirmed"]
-════════════════════════════════════════════════════════════════ */
-[data-page="tour-confirmed"] {
-    --tc-gold:     #b8902e;
-    --tc-gold-lt:  #d4aa4a;
-    --tc-gold-dk:  #9a7520;
-    --tc-gold-bg:  rgba(184,144,46,0.08);
-    --tc-green:    #4caf7d;
-    --tc-green-bg: rgba(76,175,125,0.1);
-    --tc-ink:      #0e0c0a;
-    --tc-ink2:     #141210;
-    --tc-ink3:     #1c1916;
-    --tc-text:     #e8e2d6;
-    --tc-muted:    #7a7470;
-    --tc-border:   rgba(184,144,46,0.15);
-    --tc-border2:  rgba(255,255,255,0.06);
-    --tc-serif:    'Cormorant Garamond', Georgia, serif;
-    --tc-sans:     'Jost', system-ui, sans-serif;
-    --tc-ease:     cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-[data-page="tour-confirmed"] {
-    font-family: var(--tc-sans);
-    background: var(--tc-ink);
-    color: var(--tc-text);
-    font-weight: 300;
-    -webkit-font-smoothing: antialiased;
-    min-height: 100vh;
-}
-
-/* ── Page shell ──────────────────────────────────────────────── */
 .tc__page {
+    --tc-ink:     #1a1714;
+    --tc-cream:   #faf8f3;
+    --tc-white:   #ffffff;
+    --tc-gold:    #b8902e;
+    --tc-gold-lt: #d4aa4a;
+    --tc-gold-dk: #9a7520;
+    --tc-border:  #e8e2d6;
+    --tc-serif:   'Cormorant Garamond', Georgia, serif;
+    --tc-sans:    'Jost', system-ui, sans-serif;
+
+    font-family: var(--tc-sans);
+    background: var(--tc-cream);
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: calc(36px + 68px + 3rem) 2rem 5rem;
-    position: relative;
-    overflow: hidden;
+    display: flex; flex-direction: column;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* Background radial glow */
-.tc__page::before {
-    content: '';
-    position: fixed;
-    top: -10vh;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 700px;
-    height: 700px;
-    border-radius: 50%;
-    background: radial-gradient(ellipse, rgba(76,175,125,0.07) 0%, transparent 70%);
-    pointer-events: none;
-}
-.tc__page::after {
-    content: '';
-    position: fixed;
-    bottom: -20vh;
-    right: -10vw;
-    width: 500px;
-    height: 500px;
-    border-radius: 50%;
-    background: radial-gradient(ellipse, rgba(184,144,46,0.05) 0%, transparent 70%);
-    pointer-events: none;
+.tc__wrap {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center;
+    padding: calc(36px + 68px + 2rem) 1.5rem 4rem;
 }
 
-.tc__inner {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 640px;
+.tc__card {
+    background: var(--tc-white);
+    border: 1px solid var(--tc-border);
+    border-radius: 20px;
+    box-shadow: 0 6px 48px rgba(26,23,20,.1);
+    padding: 3.5rem 2.8rem 2.8rem;
+    max-width: 560px; width: 100%;
+    text-align: center;
+    position: relative; overflow: hidden;
+}
+.tc__card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(to right, var(--tc-gold), var(--tc-gold-lt) 55%, transparent);
 }
 
-/* ── Success icon ────────────────────────────────────────────── */
-.tc__icon-wrap {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 2rem;
-}
-.tc__icon-ring {
-    width: 88px; height: 88px;
-    border-radius: 50%;
-    background: var(--tc-green-bg);
-    border: 1px solid rgba(76,175,125,0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: tc-pop 0.6s 0.1s var(--tc-ease) both;
-    position: relative;
-}
-.tc__icon-ring::before {
-    content: '';
-    position: absolute;
-    inset: -8px;
-    border-radius: 50%;
-    border: 1px solid rgba(76,175,125,0.12);
-    animation: tc-pulse 2.5s 0.8s ease-in-out infinite;
+/* Gold star badge */
+.tc__icon {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--tc-gold), var(--tc-gold-lt));
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.6rem;
+    box-shadow: 0 6px 24px rgba(184,144,46,.35);
+    animation: tc-pop .5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 @keyframes tc-pop {
-    from { opacity:0; transform:scale(0.7); }
-    to   { opacity:1; transform:scale(1); }
+    0%   { transform: scale(0.4); opacity: 0; }
+    100% { transform: scale(1);   opacity: 1; }
 }
-@keyframes tc-pulse {
-    0%,100% { transform:scale(1);   opacity:1; }
-    50%      { transform:scale(1.15); opacity:0; }
-}
-.tc__check {
-    color: var(--tc-green);
-}
+.tc__icon svg { width: 38px; height: 38px; }
 
-/* ── Text header ─────────────────────────────────────────────── */
-.tc__hdr {
-    text-align: center;
-    margin-bottom: 2.5rem;
-    animation: tc-up 0.7s 0.25s var(--tc-ease) both;
-}
 .tc__eyebrow {
-    font-size: 0.62rem;
-    font-weight: 600;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--tc-green);
-    margin-bottom: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.6rem;
+    font-size: .58rem; font-weight: 600; letter-spacing: .28em;
+    text-transform: uppercase; color: var(--tc-gold);
+    margin-bottom: .55rem;
 }
-.tc__eyebrow::before,
-.tc__eyebrow::after {
-    content: '';
-    width: 24px; height: 1px;
-    background: rgba(76,175,125,0.4);
-}
-.tc__h1 {
+.tc__title {
     font-family: var(--tc-serif);
-    font-size: clamp(2.2rem, 5vw, 3rem);
-    font-weight: 400;
-    color: #f8f5ef;
-    line-height: 1.1;
-    letter-spacing: -0.01em;
-    margin-bottom: 0.7rem;
+    font-size: 2rem; font-weight: 300;
+    color: var(--tc-ink); margin: 0 0 .5rem;
+    line-height: 1.15;
 }
-.tc__h1 em { font-style: italic; color: var(--tc-gold-lt); }
+.tc__title em { font-style: italic; color: var(--tc-gold); }
 .tc__sub {
-    font-size: 0.9rem;
-    line-height: 1.75;
-    color: rgba(248,245,239,0.55);
-    max-width: 420px;
-    margin: 0 auto;
+    font-size: .86rem; color: #888; font-weight: 300;
+    line-height: 1.7; margin-bottom: 1.8rem;
 }
 
-@keyframes tc-up {
-    from { opacity:0; transform:translateY(18px); }
-    to   { opacity:1; transform:none; }
-}
-
-/* ── Booking card ────────────────────────────────────────────── */
-.tc__card {
-    background: var(--tc-ink3);
-    border: 1px solid var(--tc-border);
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 1.25rem;
-    animation: tc-up 0.7s 0.4s var(--tc-ease) both;
-}
-
-.tc__card-hdr {
-    background: var(--tc-gold-bg);
-    border-bottom: 1px solid var(--tc-border);
-    padding: 1.1rem 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-.tc__card-hdr-left {
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
-}
-.tc__card-emoji { font-size: 1.3rem; line-height: 1; }
-.tc__card-tour {
-    font-family: var(--tc-serif);
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: #f0ece4;
-}
+/* ref pill */
 .tc__ref {
-    font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--tc-gold);
-    background: rgba(184,144,46,0.12);
-    padding: 0.3rem 0.75rem;
-    border-radius: 4px;
-    border: 1px solid var(--tc-border);
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .5rem 1rem;
+    background: rgba(184,144,46,.07);
+    border: 1px solid rgba(184,144,46,.22);
+    border-radius: 100px;
+    font-size: .7rem; font-weight: 700; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--tc-gold);
+    margin-bottom: 1.8rem;
 }
 
-/* ── Detail rows ─────────────────────────────────────────────── */
-.tc__rows { padding: 0.5rem 0; }
+/* booking summary */
+.tc__summary {
+    background: #faf8f3;
+    border: 1px solid var(--tc-border);
+    border-radius: 12px;
+    padding: 1.1rem 1.2rem;
+    margin-bottom: 2rem;
+    text-align: left;
+}
 .tc__row {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 0.85rem 1.5rem;
-    border-bottom: 1px solid var(--tc-border2);
-    font-size: 0.855rem;
+    display: flex; align-items: flex-start;
+    justify-content: space-between; gap: 1rem;
+    padding: .4rem 0;
+    border-bottom: 1px solid var(--tc-border);
+    font-size: .83rem; line-height: 1.5;
 }
 .tc__row:last-child { border-bottom: none; }
-.tc__row-label {
-    font-size: 0.65rem;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--tc-muted);
-    white-space: nowrap;
-    flex-shrink: 0;
-    padding-top: 1px;
+.tc__lbl { color: #a09890; font-weight: 300; flex-shrink: 0; }
+.tc__val { color: var(--tc-ink); font-weight: 400; text-align: right; }
+
+/* next steps */
+.tc__steps {
+    display: flex; flex-direction: column; gap: .65rem;
+    margin-bottom: 2rem; text-align: left;
 }
-.tc__row-val {
-    color: #e8e2d6;
-    text-align: right;
-    line-height: 1.5;
+.tc__step {
+    display: flex; align-items: flex-start; gap: .85rem;
+    font-size: .82rem; line-height: 1.6; color: #4a4540;
 }
-.tc__row-val--gold {
-    font-family: var(--tc-serif);
-    font-size: 1.3rem;
-    font-weight: 400;
-    color: var(--tc-gold-lt);
+.tc__step-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--tc-gold); color: #fff;
+    font-size: .65rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: .1rem;
 }
 
-/* ── Callout box ─────────────────────────────────────────────── */
-.tc__callout {
-    background: var(--tc-ink3);
-    border: 1px solid var(--tc-border);
-    border-left: 3px solid var(--tc-gold);
-    border-radius: 8px;
-    padding: 1.2rem 1.4rem;
-    margin-bottom: 1.25rem;
-    font-size: 0.85rem;
-    line-height: 1.75;
-    color: rgba(248,245,239,0.6);
-    animation: tc-up 0.7s 0.55s var(--tc-ease) both;
-}
-.tc__callout strong { color: var(--tc-gold-lt); font-weight: 500; }
-
-/* ── Action buttons ──────────────────────────────────────────── */
-.tc__actions {
-    display: flex;
-    gap: 0.85rem;
-    flex-wrap: wrap;
-    animation: tc-up 0.7s 0.65s var(--tc-ease) both;
-}
-.tc__btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.55rem;
-    padding: 0.85rem 1.6rem;
-    border-radius: 6px;
+/* actions */
+.tc__actions { display: flex; flex-direction: column; gap: .7rem; }
+.tc__btn-primary {
+    display: flex; align-items: center; justify-content: center;
+    gap: .6rem;
+    padding: .95rem 1.5rem;
+    background: #25d366; color: #fff;
+    border: none; border-radius: 10px;
     font-family: var(--tc-sans);
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.16em;
+    font-size: .78rem; font-weight: 700; letter-spacing: .15em;
+    text-transform: uppercase; text-decoration: none;
+    transition: background .2s, transform .2s, box-shadow .2s;
+    box-shadow: 0 4px 16px rgba(37,211,102,.28);
+}
+.tc__btn-primary:hover {
+    background: #1dbe5c; transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(37,211,102,.35);
+    color: #fff; text-decoration: none;
+}
+.tc__btn-secondary {
+    display: inline-block;
+    padding: .88rem 1.5rem;
+    background: var(--tc-white);
+    border: 1.5px solid var(--tc-border);
+    border-radius: 10px; text-decoration: none;
+    color: var(--tc-ink);
+    font-family: var(--tc-sans);
+    font-size: .78rem; font-weight: 500; letter-spacing: .1em;
     text-transform: uppercase;
-    text-decoration: none;
-    transition: background 0.25s, transform 0.2s, box-shadow 0.25s, color 0.25s;
-    cursor: pointer;
-    border: none;
-    flex: 1;
-    min-width: 160px;
+    transition: border-color .2s, background .2s;
 }
-.tc__btn--gold {
-    background: var(--tc-gold);
-    color: #fff;
-    box-shadow: 0 4px 16px rgba(184,144,46,0.25);
-}
-.tc__btn--gold:hover {
-    background: var(--tc-gold-dk);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(184,144,46,0.35);
-}
-.tc__btn--ghost {
-    background: transparent;
-    color: rgba(248,245,239,0.7);
-    border: 1px solid var(--tc-border);
-}
-.tc__btn--ghost:hover {
+.tc__btn-secondary:hover {
     border-color: var(--tc-gold);
-    color: var(--tc-gold-lt);
-    background: var(--tc-gold-bg);
+    background: rgba(184,144,46,.04);
+    color: var(--tc-ink); text-decoration: none;
 }
-.tc__btn:active { transform: translateY(0); }
 
-/* ── Responsive ──────────────────────────────────────────────── */
-@media (max-width: 540px) {
-    .tc__page { padding: calc(36px + 68px + 2rem) 1.25rem 4rem; }
-    .tc__actions { flex-direction: column; }
-    .tc__btn { min-width: unset; }
-    .tc__row { flex-direction: column; gap: 0.25rem; }
-    .tc__row-val { text-align: left; }
+@media (max-width: 480px) {
+    .tc__card { padding: 2.2rem 1.25rem 1.8rem; border-radius: 14px; }
 }
 </style>
 {% endblock %}
 
 {% block body %}
-<div data-page="tour-confirmed">
 <div class="tc__page">
-<div class="tc__inner">
+<div class="tc__wrap">
+<div class="tc__card">
 
-    <!-- Success icon -->
-    <div class="tc__icon-wrap">
-        <div class="tc__icon-ring">
-            <svg class="tc__check" width="36" height="36" viewBox="0 0 24 24"
-                 fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round"
-                 aria-hidden="true">
-                <polyline points="20 6 9 17 4 12"/>
-            </svg>
+    <div class="tc__icon">
+        <svg viewBox="0 0 38 38" fill="none" aria-hidden="true">
+            <path d="M8 20l7 7 15-15" stroke="white" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </div>
+
+    <p class="tc__eyebrow">SevenStar Limo &amp; Chauffeur</p>
+    <h1 class="tc__title">Tour Inquiry <em>Confirmed</em></h1>
+    <p class="tc__sub">
+        Your inquiry has been saved and sent to our team.<br>
+        We'll confirm your {{ tour_info.label }} personally via WhatsApp.
+    </p>
+
+    <div class="tc__ref">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+        </svg>
+        Reference #{{ booking.id|stringformat:"06d" }}
+    </div>
+
+    <!-- Summary -->
+    <div class="tc__summary">
+        <div class="tc__row">
+            <span class="tc__lbl">Tour</span>
+            <span class="tc__val">{{ tour_info.label }}</span>
+        </div>
+        <div class="tc__row">
+            <span class="tc__lbl">Name</span>
+            <span class="tc__val">{{ booking.passenger_name }}</span>
+        </div>
+        <div class="tc__row">
+            <span class="tc__lbl">Date</span>
+            <span class="tc__val">{{ booking.booking_date }}</span>
+        </div>
+        <div class="tc__row">
+            <span class="tc__lbl">Time</span>
+            <span class="tc__val">{{ booking.booking_time }}</span>
+        </div>
+        <div class="tc__row">
+            <span class="tc__lbl">Pickup</span>
+            <span class="tc__val">{{ booking.pickup_address }}</span>
+        </div>
+        {% if booking.selected_car %}
+        <div class="tc__row">
+            <span class="tc__lbl">Vehicle</span>
+            <span class="tc__val">{{ booking.selected_car.name }}</span>
+        </div>
+        {% endif %}
+        <div class="tc__row">
+            <span class="tc__lbl">Passengers</span>
+            <span class="tc__val">{{ booking.number_of_passengers }}</span>
         </div>
     </div>
 
-    <!-- Header -->
-    <div class="tc__hdr">
-        <p class="tc__eyebrow">Payment Confirmed</p>
-        <h1 class="tc__h1">You're all <em>booked in</em></h1>
-        <p class="tc__sub">
-            Thank you, {{ booking.passenger_name }}. Your
-            {{ booking.get_tour_type_display }} is confirmed and a
-            confirmation has been sent to {{ booking.passenger_email }}.
-        </p>
-    </div>
-
-    <!-- Booking details card -->
-    <div class="tc__card" aria-label="Booking summary">
-        <div class="tc__card-hdr">
-            <div class="tc__card-hdr-left">
-                <span class="tc__card-emoji" aria-hidden="true">{{ tour_info.emoji }}</span>
-                <span class="tc__card-tour">{{ booking.get_tour_type_display }}</span>
-            </div>
-            <span class="tc__ref">Ref #{{ booking.id|stringformat:"06d" }}</span>
+    <!-- Next steps -->
+    <div class="tc__steps" aria-label="What happens next">
+        <div class="tc__step">
+            <div class="tc__step-num">1</div>
+            <span>Our team will review your inquiry and reach out via <strong>WhatsApp</strong> to confirm availability.</span>
         </div>
-        <div class="tc__rows">
-            <div class="tc__row">
-                <span class="tc__row-label">Name</span>
-                <span class="tc__row-val">{{ booking.passenger_name }}</span>
-            </div>
-            <div class="tc__row">
-                <span class="tc__row-label">Pickup</span>
-                <span class="tc__row-val">{{ booking.pickup_address }}</span>
-            </div>
-            <div class="tc__row">
-                <span class="tc__row-label">Date</span>
-                <span class="tc__row-val">{{ booking.booking_date }}</span>
-            </div>
-            <div class="tc__row">
-                <span class="tc__row-label">Time</span>
-                <span class="tc__row-val">{{ booking.booking_time }}</span>
-            </div>
-            <div class="tc__row">
-                <span class="tc__row-label">Passengers</span>
-                <span class="tc__row-val">{{ booking.number_of_passengers }}</span>
-            </div>
-            <div class="tc__row">
-                <span class="tc__row-label">Bags</span>
-                <span class="tc__row-val">{{ booking.number_of_bags }}</span>
-            </div>
-            {% if booking.special_instruction %}
-            <div class="tc__row">
-                <span class="tc__row-label">Instructions</span>
-                <span class="tc__row-val">{{ booking.special_instruction }}</span>
-            </div>
-            {% endif %}
-            <div class="tc__row">
-                <span class="tc__row-label">Amount Paid</span>
-                <span class="tc__row-val tc__row-val--gold">A${{ booking.total_price }}</span>
-            </div>
+        <div class="tc__step">
+            <div class="tc__step-num">2</div>
+            <span>You'll receive your <strong>personalised quote</strong> and any tour customisation options.</span>
         </div>
-    </div>
-
-    <!-- Callout -->
-    <div class="tc__callout" role="note">
-        Please keep your reference number
-        <strong>#{{ booking.id|stringformat:"06d" }}</strong> for any enquiries.
-        Our driver will contact you prior to your tour date to confirm arrangements.
-        A full confirmation has been sent to
-        <strong>{{ booking.passenger_email }}</strong>.
+        <div class="tc__step">
+            <div class="tc__step-num">3</div>
+            <span>Once confirmed, your <strong>SevenStar Limo driver</strong> will be assigned and contact you before the tour.</span>
+        </div>
     </div>
 
     <!-- Actions -->
     <div class="tc__actions">
-        <a href="{% url 'tours' %}" class="tc__btn tc__btn--gold">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                <line x1="5" y1="12" x2="19" y2="12"/>
-                <polyline points="12 5 19 12 12 19"/>
+        <a href="https://wa.me/61483841489" target="_blank" rel="noopener noreferrer"
+           class="tc__btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.978-1.301A9.934 9.934 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18a7.946 7.946 0 01-4.354-1.297l-.31-.186-3.23.845.867-3.142-.204-.325A7.96 7.96 0 014 12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8z"/>
             </svg>
-            Book Another Tour
+            Chat with Us on WhatsApp
         </a>
-        <a href="{% url 'orders' %}?type=ptp" class="tc__btn tc__btn--ghost">
-            Book a Transfer
-        </a>
+        <a href="{% url 'tours' %}" class="tc__btn-secondary">Browse More Tours</a>
     </div>
 
 </div>

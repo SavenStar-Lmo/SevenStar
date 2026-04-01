@@ -1,342 +1,183 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Payment Not Completed — {{ booking.get_tour_type_display }} | SevenStar Limo{% endblock %}
+{% block title %}Inquiry Cancelled | SevenStar Limo Melbourne{% endblock %}
 {% block meta_robots %}noindex, nofollow{% endblock %}
 
 {% block extra_css %}
 <style>
-/* ════════════════════════════════════════════════════════════════
-   TOUR CANCELLED — tca__ prefix
-   Scoped under [data-page="tour-cancelled"]
-════════════════════════════════════════════════════════════════ */
-[data-page="tour-cancelled"] {
-    --tca-gold:     #b8902e;
-    --tca-gold-lt:  #d4aa4a;
-    --tca-gold-dk:  #9a7520;
-    --tca-gold-bg:  rgba(184,144,46,0.08);
-    --tca-amber:    #e8a030;
-    --tca-amber-bg: rgba(232,160,48,0.08);
-    --tca-ink:      #0e0c0a;
-    --tca-ink2:     #141210;
-    --tca-ink3:     #1c1916;
-    --tca-text:     #e8e2d6;
-    --tca-muted:    #7a7470;
-    --tca-border:   rgba(184,144,46,0.15);
-    --tca-border2:  rgba(255,255,255,0.06);
-    --tca-serif:    'Cormorant Garamond', Georgia, serif;
-    --tca-sans:     'Jost', system-ui, sans-serif;
-    --tca-ease:     cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
+.tcc__page {
+    --tcc-ink:     #1a1714;
+    --tcc-cream:   #faf8f3;
+    --tcc-white:   #ffffff;
+    --tcc-gold:    #b8902e;
+    --tcc-gold-lt: #d4aa4a;
+    --tcc-border:  #e8e2d6;
+    --tcc-muted:   #a09890;
+    --tcc-serif:   'Cormorant Garamond', Georgia, serif;
+    --tcc-sans:    'Jost', system-ui, sans-serif;
 
-[data-page="tour-cancelled"] {
-    font-family: var(--tca-sans);
-    background: var(--tca-ink);
-    color: var(--tca-text);
-    font-weight: 300;
+    font-family: var(--tcc-sans);
+    background: var(--tcc-cream);
+    min-height: 100vh;
+    display: flex; flex-direction: column;
     -webkit-font-smoothing: antialiased;
-    min-height: 100vh;
 }
 
-/* ── Page shell ──────────────────────────────────────────────── */
-.tca__page {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: calc(36px + 68px + 3rem) 2rem 5rem;
-    position: relative;
-    overflow: hidden;
-}
-.tca__page::before {
-    content: '';
-    position: fixed;
-    top: -10vh;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 700px;
-    height: 700px;
-    border-radius: 50%;
-    background: radial-gradient(ellipse, rgba(232,160,48,0.05) 0%, transparent 70%);
-    pointer-events: none;
-}
-
-.tca__inner {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 600px;
-}
-
-/* ── Icon ────────────────────────────────────────────────────── */
-.tca__icon-wrap {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 2rem;
-}
-.tca__icon-ring {
-    width: 88px; height: 88px;
-    border-radius: 50%;
-    background: var(--tca-amber-bg);
-    border: 1px solid rgba(232,160,48,0.25);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: tca-pop 0.6s 0.1s var(--tca-ease) both;
-}
-@keyframes tca-pop {
-    from { opacity:0; transform:scale(0.7); }
-    to   { opacity:1; transform:scale(1); }
-}
-
-/* ── Text header ─────────────────────────────────────────────── */
-.tca__hdr {
-    text-align: center;
-    margin-bottom: 2.5rem;
-    animation: tca-up 0.7s 0.25s var(--tca-ease) both;
-}
-.tca__eyebrow {
-    font-size: 0.62rem;
-    font-weight: 600;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--tca-amber);
-    margin-bottom: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.6rem;
-}
-.tca__eyebrow::before,
-.tca__eyebrow::after {
-    content: '';
-    width: 24px; height: 1px;
-    background: rgba(232,160,48,0.35);
-}
-.tca__h1 {
-    font-family: var(--tca-serif);
-    font-size: clamp(2rem, 5vw, 2.8rem);
-    font-weight: 400;
-    color: #f8f5ef;
-    line-height: 1.12;
-    letter-spacing: -0.01em;
-    margin-bottom: 0.7rem;
-}
-.tca__h1 em { font-style: italic; color: var(--tca-gold-lt); }
-.tca__sub {
-    font-size: 0.9rem;
-    line-height: 1.75;
-    color: rgba(248,245,239,0.55);
-    max-width: 400px;
-    margin: 0 auto;
-}
-@keyframes tca-up {
-    from { opacity:0; transform:translateY(18px); }
-    to   { opacity:1; transform:none; }
-}
-
-/* ── Info card ───────────────────────────────────────────────── */
-.tca__card {
-    background: var(--tca-ink3);
-    border: 1px solid var(--tca-border);
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 1.25rem;
-    animation: tca-up 0.7s 0.4s var(--tca-ease) both;
-}
-.tca__card-hdr {
-    background: var(--tca-amber-bg);
-    border-bottom: 1px solid rgba(232,160,48,0.12);
-    padding: 1rem 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
-}
-.tca__card-emoji { font-size: 1.2rem; line-height: 1; }
-.tca__card-title {
-    font-family: var(--tca-serif);
-    font-size: 1.05rem;
-    font-weight: 500;
-    color: #e8e2d6;
-}
-.tca__rows { padding: 0.5rem 0; }
-.tca__row {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 0.8rem 1.5rem;
-    border-bottom: 1px solid var(--tca-border2);
-    font-size: 0.855rem;
-}
-.tca__row:last-child { border-bottom: none; }
-.tca__row-label {
-    font-size: 0.65rem;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--tca-muted);
-    white-space: nowrap;
-    flex-shrink: 0;
-    padding-top: 1px;
-}
-.tca__row-val {
-    color: rgba(248,245,239,0.7);
-    text-align: right;
-    line-height: 1.5;
-}
-
-/* ── Notice ──────────────────────────────────────────────────── */
-.tca__notice {
-    background: var(--tca-ink3);
-    border: 1px solid var(--tca-border);
-    border-left: 3px solid var(--tca-amber);
-    border-radius: 8px;
-    padding: 1.2rem 1.4rem;
-    margin-bottom: 1.25rem;
-    font-size: 0.85rem;
-    line-height: 1.75;
-    color: rgba(248,245,239,0.6);
-    animation: tca-up 0.7s 0.5s var(--tca-ease) both;
-}
-.tca__notice strong { color: rgba(248,245,239,0.85); font-weight: 400; }
-
-/* ── Actions ─────────────────────────────────────────────────── */
-.tca__actions {
-    display: flex;
-    gap: 0.85rem;
-    flex-wrap: wrap;
-    animation: tca-up 0.7s 0.6s var(--tca-ease) both;
-}
-.tca__btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.55rem;
-    padding: 0.85rem 1.6rem;
-    border-radius: 6px;
-    font-family: var(--tca-sans);
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    text-decoration: none;
-    transition: background 0.25s, transform 0.2s, box-shadow 0.25s, color 0.25s;
-    cursor: pointer;
-    border: none;
+.tcc__wrap {
     flex: 1;
-    min-width: 160px;
+    display: flex; align-items: center; justify-content: center;
+    padding: calc(36px + 68px + 2rem) 1.5rem 4rem;
 }
-.tca__btn--gold {
-    background: var(--tca-gold);
-    color: #fff;
-    box-shadow: 0 4px 16px rgba(184,144,46,0.25);
-}
-.tca__btn--gold:hover {
-    background: var(--tca-gold-dk);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(184,144,46,0.35);
-}
-.tca__btn--ghost {
-    background: transparent;
-    color: rgba(248,245,239,0.6);
-    border: 1px solid var(--tca-border);
-}
-.tca__btn--ghost:hover {
-    border-color: var(--tca-gold);
-    color: var(--tca-gold-lt);
-    background: var(--tca-gold-bg);
-}
-.tca__btn:active { transform: translateY(0); }
 
-/* ── Responsive ──────────────────────────────────────────────── */
-@media (max-width: 540px) {
-    .tca__page { padding: calc(36px + 68px + 2rem) 1.25rem 4rem; }
-    .tca__actions { flex-direction: column; }
-    .tca__btn { min-width: unset; }
-    .tca__row { flex-direction: column; gap: 0.25rem; }
-    .tca__row-val { text-align: left; }
+.tcc__card {
+    background: var(--tcc-white);
+    border: 1px solid var(--tcc-border);
+    border-radius: 20px;
+    box-shadow: 0 6px 48px rgba(26,23,20,.08);
+    padding: 3.5rem 2.8rem 2.8rem;
+    max-width: 500px; width: 100%;
+    text-align: center;
+    position: relative; overflow: hidden;
+}
+.tcc__card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(to right, var(--tcc-gold), var(--tcc-gold-lt) 55%, transparent);
+}
+
+/* icon */
+.tcc__icon {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, #e8e2d6, #d4cdc2);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.6rem;
+    box-shadow: 0 4px 18px rgba(26,23,20,.1);
+}
+.tcc__icon svg { width: 36px; height: 36px; }
+
+.tcc__eyebrow {
+    font-size: .58rem; font-weight: 600; letter-spacing: .28em;
+    text-transform: uppercase; color: var(--tcc-gold);
+    margin-bottom: .55rem;
+}
+.tcc__title {
+    font-family: var(--tcc-serif);
+    font-size: 2rem; font-weight: 300;
+    color: var(--tcc-ink); margin: 0 0 .5rem; line-height: 1.15;
+}
+.tcc__title em { font-style: italic; color: var(--tcc-muted); }
+.tcc__sub {
+    font-size: .86rem; color: #888; font-weight: 300;
+    line-height: 1.7; margin-bottom: 2rem;
+}
+
+/* info box */
+.tcc__info {
+    background: #faf8f3;
+    border: 1px solid var(--tcc-border);
+    border-radius: 12px;
+    padding: 1.2rem 1.3rem;
+    margin-bottom: 2rem;
+    text-align: left;
+    font-size: .83rem; line-height: 1.7; color: #4a4540;
+}
+.tcc__info strong { color: var(--tcc-gold); font-weight: 500; }
+
+/* actions */
+.tcc__actions { display: flex; flex-direction: column; gap: .7rem; }
+.tcc__btn-gold {
+    display: flex; align-items: center; justify-content: center;
+    gap: .5rem;
+    padding: .95rem 1.5rem;
+    background: var(--tcc-gold); color: #fff;
+    border-radius: 10px; text-decoration: none;
+    font-family: var(--tcc-sans);
+    font-size: .78rem; font-weight: 700; letter-spacing: .15em;
+    text-transform: uppercase;
+    transition: background .2s, transform .2s, box-shadow .2s;
+    box-shadow: 0 4px 16px rgba(184,144,46,.28);
+}
+.tcc__btn-gold:hover {
+    background: #9a7520; transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(184,144,46,.35);
+    color: #fff; text-decoration: none;
+}
+.tcc__btn-outline {
+    display: flex; align-items: center; justify-content: center;
+    gap: .5rem;
+    padding: .88rem 1.5rem;
+    background: var(--tcc-white);
+    border: 1.5px solid var(--tcc-border);
+    border-radius: 10px; text-decoration: none;
+    color: var(--tcc-ink);
+    font-family: var(--tcc-sans);
+    font-size: .78rem; font-weight: 500; letter-spacing: .1em;
+    text-transform: uppercase;
+    transition: border-color .2s, background .2s;
+}
+.tcc__btn-outline:hover {
+    border-color: rgba(37,211,102,.4);
+    background: rgba(37,211,102,.04);
+    color: var(--tcc-ink); text-decoration: none;
+}
+
+@media (max-width: 480px) {
+    .tcc__card { padding: 2.2rem 1.25rem 1.8rem; border-radius: 14px; }
 }
 </style>
 {% endblock %}
 
 {% block body %}
-<div data-page="tour-cancelled">
-<div class="tca__page">
-<div class="tca__inner">
+<div class="tcc__page">
+<div class="tcc__wrap">
+<div class="tcc__card">
 
-    <!-- Icon -->
-    <div class="tca__icon-wrap">
-        <div class="tca__icon-ring">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none"
-                 stroke="#e8a030" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round"
-                 aria-hidden="true">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="12"/>
-                <line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-        </div>
+    <div class="tcc__icon">
+        <svg viewBox="0 0 36 36" fill="none" aria-hidden="true">
+            <path d="M18 11v8M18 23v1" stroke="#a09890" stroke-width="2.4" stroke-linecap="round"/>
+            <circle cx="18" cy="18" r="14" stroke="#c8c0b4" stroke-width="2"/>
+        </svg>
     </div>
 
-    <!-- Header -->
-    <div class="tca__hdr">
-        <p class="tca__eyebrow">Payment Not Completed</p>
-        <h1 class="tca__h1">Your booking was <em>not confirmed</em></h1>
-        <p class="tca__sub">
-            It looks like the payment step was not completed. No charge has been made
-            to your card. Please try again or contact our team for assistance.
+    <p class="tcc__eyebrow">SevenStar Limo &amp; Chauffeur</p>
+    <h1 class="tcc__title">Inquiry <em>Not Completed</em></h1>
+    <p class="tcc__sub">
+        It looks like your tour inquiry wasn't completed. No details have been saved —
+        you can start again whenever you're ready.
+    </p>
+
+    <div class="tcc__info">
+        {% if booking %}
+        <p style="margin:0 0 .6rem;">
+            <strong>Tour:</strong> {{ tour_info.label }}<br>
+            <strong>Reference:</strong> #{{ booking.id|stringformat:"06d" }} (not confirmed)
+        </p>
+        {% endif %}
+        <p style="margin:0;">
+            If you need help or have questions, please reach out to our team directly —
+            we're happy to assist you plan your perfect Victoria experience.
         </p>
     </div>
 
-    <!-- Booking attempt details -->
-    <div class="tca__card" aria-label="Booking attempt summary">
-        <div class="tca__card-hdr">
-            <span class="tca__card-emoji" aria-hidden="true">{{ tour_info.emoji }}</span>
-            <span class="tca__card-title">{{ booking.get_tour_type_display }}</span>
-        </div>
-        <div class="tca__rows">
-            <div class="tca__row">
-                <span class="tca__row-label">Name</span>
-                <span class="tca__row-val">{{ booking.passenger_name }}</span>
-            </div>
-            <div class="tca__row">
-                <span class="tca__row-label">Pickup</span>
-                <span class="tca__row-val">{{ booking.pickup_address }}</span>
-            </div>
-            <div class="tca__row">
-                <span class="tca__row-label">Date</span>
-                <span class="tca__row-val">{{ booking.booking_date }}</span>
-            </div>
-            <div class="tca__row">
-                <span class="tca__row-label">Passengers</span>
-                <span class="tca__row-val">{{ booking.number_of_passengers }}</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Notice -->
-    <div class="tca__notice" role="note">
-        <strong>No payment was taken.</strong> Your booking has not been confirmed.
-        To complete your {{ booking.get_tour_type_display }} reservation, please
-        try booking again or contact the SevenStar Limo team directly and quote
-        reference <strong>#{{ booking.id|stringformat:"06d" }}</strong>.
-    </div>
-
-    <!-- Actions -->
-    <div class="tca__actions">
-        <a href="{% url 'tours' %}?type={{ booking.tour_type }}"
-           class="tca__btn tca__btn--gold">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                <polyline points="1 4 1 10 7 10"/>
-                <path d="M3.51 15a9 9 0 1 0 .49-4.95"/>
+    <div class="tcc__actions">
+        <a href="{% url 'tours' %}{% if booking %}?type={{ booking.tour_type }}{% endif %}"
+           class="tcc__btn-gold">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.17"/>
             </svg>
             Try Again
         </a>
-        <a href="{% url 'tours' %}" class="tca__btn tca__btn--ghost">
-            All Tours
+        <a href="https://wa.me/61483841489" target="_blank" rel="noopener noreferrer"
+           class="tcc__btn-outline">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.978-1.301A9.934 9.934 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18a7.946 7.946 0 01-4.354-1.297l-.31-.186-3.23.845.867-3.142-.204-.325A7.96 7.96 0 014 12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8z"/>
+            </svg>
+            Contact Us on WhatsApp
+        </a>
+        <a href="{% url 'tours' %}" class="tcc__btn-outline" style="border-color:var(--tcc-border);">
+            ← All Tours
         </a>
     </div>
 
