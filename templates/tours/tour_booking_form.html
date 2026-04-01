@@ -1,0 +1,932 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Book {{ tour.label }} | SevenStar Limo Melbourne{% endblock %}
+
+{% block meta_description %}Book your {{ tour.label }} with SevenStar Limo & Chauffeur. Private chauffeur, luxury vehicles, personalised service across Victoria.{% endblock %}
+
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
+{% block canonical_url %}https://www.sevenstarlimo.com.au/tours/?type={{ tour_key }}{% endblock %}
+
+{% block og_title %}Book {{ tour.label }} | SevenStar Limo{% endblock %}
+{% block og_description %}Private chauffeur-driven {{ tour.label }} with SevenStar Limo. Book your experience online.{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ════════════════════════════════════════════════════════════════
+   TOUR BOOKING FORM — tbf__ prefix
+   Token-for-token match with booking_form.css (bf__ → tbf__)
+   All design decisions: cream bg, white cards, gold accents,
+   same input/select/autocomplete/button/toggle patterns
+════════════════════════════════════════════════════════════════ */
+
+.tbf__page {
+    --tbf-ink:         #1a1714;
+    --tbf-ink-2:       #2e2a26;
+    --tbf-ink-soft:    #4a4540;
+    --tbf-ink-muted:   #a09890;
+    --tbf-cream:       #faf8f3;
+    --tbf-cream-2:     #f3efe6;
+    --tbf-white:       #ffffff;
+    --tbf-gold:        #b8902e;
+    --tbf-gold-lt:     #d4aa4a;
+    --tbf-gold-dk:     #9a7520;
+    --tbf-gold-bg:     rgba(184,144,46,0.07);
+    --tbf-gold-ring:   rgba(184,144,46,0.18);
+    --tbf-border:      #e8e2d6;
+    --tbf-border-f:    #b8902e;
+    --tbf-warn-bg:     #fffbf0;
+    --tbf-warn-border: #e8d08a;
+    --tbf-warn-text:   #7a5c00;
+    --tbf-err:         #b83232;
+    --tbf-serif:       'Cormorant Garamond', Georgia, serif;
+    --tbf-sans:        'Jost', system-ui, sans-serif;
+    --tbf-ease:        cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --tbf-r:           14px;
+    --tbf-rs:          10px;
+    --tbf-shadow:      0 2px 24px rgba(26,23,20,.06);
+    --tbf-shadow-h:    0 8px 40px rgba(26,23,20,.12);
+
+    font-family: var(--tbf-sans);
+    background: var(--tbf-cream);
+    color: var(--tbf-ink);
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* ════════════════════════════════════════════════════════════
+   HERO — identical to bf__hero
+════════════════════════════════════════════════════════════ */
+.tbf__hero {
+    background: var(--tbf-ink);
+    padding: calc(36px + 68px + 2.5rem) 2rem 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.tbf__hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 80% 55% at 50% 110%, rgba(184,144,46,.2) 0%, transparent 70%),
+        linear-gradient(180deg, rgba(26,23,20,.96) 0%, rgba(26,23,20,.88) 100%),
+        url("{% static 'img/hero-car.jpg' %}") center / cover no-repeat;
+}
+.tbf__hero-rule {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 2px;
+    background: linear-gradient(to right, transparent, var(--tbf-gold), transparent);
+}
+.tbf__hero-inner { position: relative; z-index: 2; }
+
+/* eyebrow — same as bf__eyebrow */
+.tbf__eyebrow {
+    font-size: .6rem;
+    font-weight: 600;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--tbf-gold-lt);
+    display: inline-flex;
+    align-items: center;
+    gap: .65rem;
+    margin-bottom: .9rem;
+}
+.tbf__eyebrow::before,
+.tbf__eyebrow::after {
+    content: '';
+    width: 20px;
+    height: 1px;
+    background: var(--tbf-gold-lt);
+}
+
+/* back link */
+.tbf__back {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    font-size: .65rem;
+    font-weight: 500;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: rgba(248,245,239,.38);
+    text-decoration: none;
+    margin-bottom: 1.2rem;
+    transition: color .2s;
+}
+.tbf__back:hover { color: var(--tbf-gold-lt); }
+.tbf__back svg { transition: transform .2s; }
+.tbf__back:hover svg { transform: translateX(-3px); }
+
+.tbf__hero h1 {
+    font-family: var(--tbf-serif);
+    font-size: clamp(1.9rem, 5vw, 3rem);
+    font-weight: 300;
+    color: #f8f5ef;
+    line-height: 1.1;
+    letter-spacing: -.02em;
+    margin: 0;
+}
+.tbf__hero h1 em { font-style: italic; color: var(--tbf-gold-lt); }
+.tbf__hero-sub {
+    margin-top: .55rem;
+    color: rgba(248,245,239,.45);
+    font-size: .88rem;
+    font-weight: 300;
+}
+
+/* badge — same as bf__badge */
+.tbf__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    margin-top: 1.1rem;
+    padding: .4rem 1rem;
+    background: rgba(184,144,46,.12);
+    border: 1px solid rgba(184,144,46,.32);
+    border-radius: 100px;
+    color: var(--tbf-gold-lt);
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .1em;
+}
+
+/* progress tracker — same as bf__prog */
+.tbf__prog {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-top: 1.8rem;
+    padding-bottom: 2rem;
+    position: relative;
+    z-index: 2;
+}
+.tbf__ps { display: flex; flex-direction: column; align-items: center; gap: .5rem; }
+.tbf__pl {
+    width: 60px;
+    height: 1px;
+    background: rgba(255,255,255,.15);
+    margin-bottom: 1.4rem;
+    flex-shrink: 0;
+}
+.tbf__pc {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: .72rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.tbf__ps--on .tbf__pc  { border: 2px solid var(--tbf-gold); color: var(--tbf-gold); background: rgba(184,144,46,.12); }
+.tbf__ps--off .tbf__pc { border: 2px solid rgba(255,255,255,.2); color: rgba(255,255,255,.3); }
+.tbf__plbl { font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; }
+.tbf__ps--on .tbf__plbl  { color: var(--tbf-gold); }
+.tbf__ps--off .tbf__plbl { color: rgba(255,255,255,.28); }
+
+/* ════════════════════════════════════════════════════════════
+   HIGHLIGHTS STRIP — warm cream notice band
+   Uses same colours as bf__notice (warn palette)
+════════════════════════════════════════════════════════════ */
+.tbf__highlights {
+    background: var(--tbf-warn-bg);
+    border-bottom: 1px solid var(--tbf-warn-border);
+    padding: 1.4rem 2rem;
+}
+.tbf__highlights-inner {
+    max-width: 860px;
+    margin: 0 auto;
+}
+.tbf__hl-label {
+    font-size: .6rem;
+    font-weight: 600;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--tbf-warn-text);
+    margin-bottom: .9rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+.tbf__hl-label::before {
+    content: '';
+    width: 16px;
+    height: 1px;
+    background: var(--tbf-warn-text);
+    opacity: .5;
+}
+.tbf__hl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: .45rem .9rem;
+}
+.tbf__hl-item {
+    display: flex;
+    align-items: flex-start;
+    gap: .55rem;
+    font-size: .82rem;
+    line-height: 1.55;
+    color: var(--tbf-ink-soft);
+}
+.tbf__hl-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--tbf-gold);
+    flex-shrink: 0;
+    margin-top: .42rem;
+    opacity: .75;
+}
+.tbf__hl-item strong { color: var(--tbf-ink-2); font-weight: 500; }
+
+/* ════════════════════════════════════════════════════════════
+   ABOUT STRIP — italic description line
+════════════════════════════════════════════════════════════ */
+.tbf__about {
+    background: var(--tbf-cream-2);
+    border-bottom: 1px solid var(--tbf-border);
+    padding: 1.2rem 2rem;
+}
+.tbf__about-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    font-family: var(--tbf-serif);
+    font-size: .95rem;
+    font-style: italic;
+    font-weight: 300;
+    line-height: 1.8;
+    color: var(--tbf-ink-soft);
+}
+
+/* ════════════════════════════════════════════════════════════
+   BODY WRAP — mirrors bf__wrap
+════════════════════════════════════════════════════════════ */
+.tbf__wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2.8rem 1.5rem 6rem;
+}
+
+/* ── Error banner — mirrors bf__err ──────────────────────────── */
+.tbf__err {
+    background: rgba(184,50,50,.06);
+    border: 1.5px solid rgba(184,50,50,.22);
+    color: var(--tbf-err);
+    border-radius: var(--tbf-rs);
+    padding: 1rem 1.2rem;
+    margin-bottom: 1.2rem;
+    font-size: .875rem;
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    line-height: 1.5;
+}
+.tbf__err svg { flex-shrink: 0; }
+
+/* ════════════════════════════════════════════════════════════
+   CARDS — mirrors bf__card exactly
+════════════════════════════════════════════════════════════ */
+.tbf__card {
+    background: var(--tbf-white);
+    border: 1px solid var(--tbf-border);
+    border-radius: var(--tbf-r);
+    box-shadow: var(--tbf-shadow);
+    padding: 2rem 2rem 2.2rem;
+    margin-bottom: 1.2rem;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow .25s var(--tbf-ease);
+}
+.tbf__card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(to right, var(--tbf-gold), var(--tbf-gold-lt) 55%, transparent);
+    opacity: 0;
+    transition: opacity .25s;
+}
+.tbf__card:focus-within { box-shadow: var(--tbf-shadow-h); }
+.tbf__card:focus-within::before { opacity: 1; }
+
+/* section header — mirrors bf__sh */
+.tbf__sh {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin-bottom: 1.6rem;
+}
+.tbf__sn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--tbf-ink);
+    color: #fff;
+    font-size: .7rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.tbf__sh h2 {
+    font-family: var(--tbf-serif);
+    font-size: 1.15rem;
+    font-weight: 500;
+    color: var(--tbf-ink);
+    margin: 0;
+    letter-spacing: -.01em;
+}
+
+/* grid — mirrors bf__g2 / bf__s2 */
+.tbf__g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.tbf__s2 { grid-column: span 2; }
+
+/* ════════════════════════════════════════════════════════════
+   FIELDS — mirrors bf__f exactly
+════════════════════════════════════════════════════════════ */
+.tbf__f { display: flex; flex-direction: column; position: relative; }
+
+.tbf__f label {
+    font-size: .63rem;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--tbf-ink-2);
+    margin-bottom: .5rem;
+}
+.tbf__req { color: var(--tbf-gold); margin-left: 2px; }
+
+.tbf__f input,
+.tbf__f select,
+.tbf__f textarea {
+    width: 100%;
+    padding: .82rem 1rem;
+    border: 1.5px solid var(--tbf-border);
+    border-radius: var(--tbf-rs);
+    font-family: var(--tbf-sans);
+    font-size: .9rem;
+    font-weight: 300;
+    color: var(--tbf-ink);
+    background: var(--tbf-cream);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: border-color .2s, background .2s, box-shadow .2s;
+    box-sizing: border-box;
+    line-height: 1.5;
+}
+.tbf__f input::placeholder,
+.tbf__f textarea::placeholder { color: var(--tbf-ink-muted); font-weight: 300; }
+.tbf__f input:hover,
+.tbf__f select:hover,
+.tbf__f textarea:hover { border-color: rgba(184,144,46,.4); background: var(--tbf-white); }
+.tbf__f input:focus,
+.tbf__f select:focus,
+.tbf__f textarea:focus {
+    border-color: var(--tbf-border-f);
+    background: var(--tbf-white);
+    box-shadow: 0 0 0 3px var(--tbf-gold-ring);
+}
+.tbf__f select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23a09890' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.6rem;
+    cursor: pointer;
+}
+.tbf__f textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+/* ── Autocomplete — mirrors bf__acw / bf__acl / bf__aci ──────── */
+.tbf__acw { position: relative; }
+.tbf__acl {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    background: var(--tbf-white);
+    border: 1.5px solid var(--tbf-border-f);
+    border-radius: var(--tbf-rs);
+    box-shadow: 0 8px 32px rgba(26,23,20,.12);
+    z-index: 9999;
+    max-height: 220px;
+    overflow-y: auto;
+    display: none;
+}
+.tbf__acl.open { display: block; }
+.tbf__aci {
+    padding: .7rem 1rem;
+    font-size: .87rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--tbf-border);
+    display: flex;
+    align-items: flex-start;
+    gap: .7rem;
+    transition: background .15s;
+}
+.tbf__aci:last-child { border-bottom: none; }
+.tbf__aci:hover,
+.tbf__aci.hi { background: var(--tbf-gold-bg); }
+.tbf__aci svg { flex-shrink: 0; margin-top: 2px; }
+
+/* ════════════════════════════════════════════════════════════
+   PRICE SUMMARY CARD — styled like a bf__card variant
+   with a warm notice-like inner feel
+════════════════════════════════════════════════════════════ */
+.tbf__price-card {
+    background: var(--tbf-white);
+    border: 1px solid var(--tbf-border);
+    border-radius: var(--tbf-r);
+    box-shadow: var(--tbf-shadow);
+    padding: 1.6rem 2rem;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+.tbf__price-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(to right, var(--tbf-gold), var(--tbf-gold-lt) 55%, transparent);
+}
+.tbf__price-label {
+    font-size: .6rem;
+    font-weight: 600;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--tbf-ink-muted);
+    margin-bottom: .3rem;
+}
+.tbf__price-amt {
+    font-family: var(--tbf-serif);
+    font-size: 2.2rem;
+    font-weight: 400;
+    color: var(--tbf-gold-dk);
+    line-height: 1;
+}
+.tbf__price-note {
+    font-size: .72rem;
+    color: var(--tbf-ink-muted);
+    margin-top: .3rem;
+}
+.tbf__price-right {
+    font-size: .78rem;
+    color: var(--tbf-ink-soft);
+    line-height: 1.7;
+    text-align: right;
+    max-width: 240px;
+}
+.tbf__price-right strong { color: var(--tbf-ink); font-weight: 500; }
+
+/* ════════════════════════════════════════════════════════════
+   SUBMIT BUTTON — mirrors bf__btn exactly
+════════════════════════════════════════════════════════════ */
+.tbf__btn {
+    width: 100%;
+    padding: 1.1rem 2rem;
+    background: var(--tbf-gold);
+    color: #fff;
+    border: none;
+    border-radius: var(--tbf-rs);
+    cursor: pointer;
+    font-family: var(--tbf-sans);
+    font-size: .8rem;
+    font-weight: 700;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .65rem;
+    transition: background .22s, transform .18s, box-shadow .22s;
+    box-shadow: 0 4px 20px rgba(184,144,46,.32);
+}
+.tbf__btn:hover {
+    background: var(--tbf-gold-dk);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(184,144,46,.42);
+}
+.tbf__btn:active { transform: translateY(0); }
+.tbf__btn:disabled { opacity: .65; cursor: not-allowed; transform: none !important; }
+
+/* spinner inside button — same as bf__spin */
+.tbf__spin {
+    width: 17px;
+    height: 17px;
+    border: 2px solid rgba(255,255,255,.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    display: none;
+    animation: tbf-spin .7s linear infinite;
+}
+@keyframes tbf-spin { to { transform: rotate(360deg); } }
+
+.tbf__note {
+    text-align: center;
+    font-size: .75rem;
+    color: var(--tbf-ink-muted);
+    margin-top: .85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+}
+
+/* ════════════════════════════════════════════════════════════
+   RESPONSIVE — mirrors bf__ breakpoints
+════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+    .tbf__g2  { grid-template-columns: 1fr; }
+    .tbf__s2  { grid-column: span 1; }
+    .tbf__card { padding: 1.5rem 1.2rem; }
+    .tbf__wrap { padding: 2rem 1rem 5rem; }
+    .tbf__hero { padding: calc(36px + 68px + 1.8rem) 1.25rem 0; }
+    .tbf__highlights,
+    .tbf__about { padding: 1.2rem 1.25rem; }
+    .tbf__price-right { text-align: left; max-width: 100%; }
+    .tbf__hl-grid { grid-template-columns: 1fr; }
+    .tbf__price-card { flex-direction: column; align-items: flex-start; }
+}
+</style>
+{% endblock %}
+
+
+{% block body %}
+<div class="tbf__page">
+
+<!-- ═══════════════════════════════════════════════════════════
+     HERO — same dark band as booking_form.html
+═══════════════════════════════════════════════════════════ -->
+<div class="tbf__hero" role="banner">
+    <div class="tbf__hero-bg" role="img" aria-label="SevenStar Limo luxury chauffeur vehicle"></div>
+    <div class="tbf__hero-rule" aria-hidden="true"></div>
+    <div class="tbf__hero-inner">
+
+        <a href="{% url 'tours' %}" class="tbf__back">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <line x1="19" y1="12" x2="5" y2="12"/>
+                <polyline points="12 19 5 12 12 5"/>
+            </svg>
+            All Tours
+        </a>
+
+        <p class="tbf__eyebrow">SevenStar Limo &amp; Chauffeur Melbourne</p>
+
+        <h1><em>{{ tour.label }}</em></h1>
+        <p class="tbf__hero-sub">{{ tour.tagline }}</p>
+
+        <div class="tbf__badge">
+            {{ tour.emoji }} {{ tour.label }}
+        </div>
+
+        {# 3-step progress tracker — same as booking_form.html #}
+        <div class="tbf__prog" role="list" aria-label="Booking steps">
+            <div class="tbf__ps tbf__ps--on" role="listitem" aria-current="step">
+                <div class="tbf__pc" aria-label="Step 1 — current">1</div>
+                <div class="tbf__plbl">Details</div>
+            </div>
+            <div class="tbf__pl" aria-hidden="true"></div>
+            <div class="tbf__ps tbf__ps--off" role="listitem">
+                <div class="tbf__pc" aria-label="Step 2 — upcoming">2</div>
+                <div class="tbf__plbl">Pay</div>
+            </div>
+            <div class="tbf__pl" aria-hidden="true"></div>
+            <div class="tbf__ps tbf__ps--off" role="listitem">
+                <div class="tbf__pc" aria-label="Step 3 — upcoming">3</div>
+                <div class="tbf__plbl">Confirmed</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HIGHLIGHTS — warm cream strip, same as bf__notice
+═══════════════════════════════════════════════════════════ -->
+<div class="tbf__highlights">
+    <div class="tbf__highlights-inner">
+        <p class="tbf__hl-label">What's Included</p>
+        <div class="tbf__hl-grid">
+            {% for h in tour.highlights %}
+            <div class="tbf__hl-item">
+                <span class="tbf__hl-dot" aria-hidden="true"></span>
+                <span><strong>{{ h }}</strong></span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ABOUT — italic description
+═══════════════════════════════════════════════════════════ -->
+<div class="tbf__about">
+    <div class="tbf__about-inner">{{ tour.about }}</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FORM — same card/field structure as booking_form.html
+═══════════════════════════════════════════════════════════ -->
+<div class="tbf__wrap">
+
+    {% if error %}
+    <div class="tbf__err" role="alert" aria-live="assertive">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <circle cx="9" cy="9" r="8" stroke="#b83232" stroke-width="1.5"/>
+            <path d="M9 5v5M9 12.5v.5" stroke="#b83232" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST" id="tbfForm" novalidate
+          aria-label="SevenStar Limo tour booking form">
+        {% csrf_token %}
+        <input type="hidden" name="tour_type" value="{{ tour_key }}">
+
+        <!-- ── Section 1: Your Details ─────────────────────────── -->
+        <div class="tbf__card">
+            <div class="tbf__sh">
+                <div class="tbf__sn" aria-hidden="true">1</div>
+                <h2>Your Details</h2>
+            </div>
+            <div class="tbf__g2">
+
+                <div class="tbf__f">
+                    <label for="tbf-name">Full Name <span class="tbf__req" aria-hidden="true">*</span></label>
+                    <input type="text" id="tbf-name" name="passenger_name"
+                           placeholder="e.g. James Wilson"
+                           value="{{ form_data.passenger_name|default:'' }}"
+                           autocomplete="name"
+                           aria-required="true" required>
+                </div>
+
+                <div class="tbf__f">
+                    <label for="tbf-phone">Phone Number <span class="tbf__req" aria-hidden="true">*</span></label>
+                    <input type="tel" id="tbf-phone" name="passenger_number"
+                           placeholder="+61 4XX XXX XXX"
+                           value="{{ form_data.passenger_number|default:'' }}"
+                           autocomplete="tel"
+                           aria-required="true" required>
+                </div>
+
+                <div class="tbf__f tbf__s2">
+                    <label for="tbf-email">Email Address <span class="tbf__req" aria-hidden="true">*</span></label>
+                    <input type="email" id="tbf-email" name="passenger_email"
+                           placeholder="you@example.com.au"
+                           value="{{ form_data.passenger_email|default:'' }}"
+                           autocomplete="email"
+                           aria-required="true" required>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ── Section 2: Tour Details ─────────────────────────── -->
+        <div class="tbf__card">
+            <div class="tbf__sh">
+                <div class="tbf__sn" aria-hidden="true">2</div>
+                <h2>Tour Details</h2>
+            </div>
+            <div class="tbf__g2">
+
+                {# Pickup address with Google autocomplete — same as bfPickup #}
+                <div class="tbf__f tbf__s2">
+                    <label for="tbfPickup">Pickup Address <span class="tbf__req" aria-hidden="true">*</span></label>
+                    <div class="tbf__acw">
+                        <input type="text" id="tbfPickup" name="pickup_address"
+                               placeholder="Start typing your hotel, home or meeting point…"
+                               value="{{ form_data.pickup_address|default:'' }}"
+                               autocomplete="off"
+                               aria-required="true"
+                               aria-label="Pickup address"
+                               aria-autocomplete="list"
+                               aria-controls="tbfPickupList"
+                               required>
+                        <div class="tbf__acl" id="tbfPickupList"
+                             role="listbox" aria-label="Pickup address suggestions"></div>
+                    </div>
+                </div>
+
+                <div class="tbf__f">
+                    <label for="tbfDate">Tour Date <span class="tbf__req" aria-hidden="true">*</span></label>
+                    <input type="date" id="tbfDate" name="booking_date"
+                           value="{{ form_data.booking_date|default:'' }}"
+                           aria-required="true" required>
+                </div>
+
+                <div class="tbf__f">
+                    <label for="tbfTime">Pickup Time <span class="tbf__req" aria-hidden="true">*</span></label>
+                    <input type="time" id="tbfTime" name="booking_time"
+                           value="{{ form_data.booking_time|default:'08:00' }}"
+                           aria-required="true" required>
+                </div>
+
+                <div class="tbf__f">
+                    <label for="tbfPass">Passengers <span class="tbf__req" aria-hidden="true">*</span></label>
+                    <select id="tbfPass" name="number_of_passengers" aria-required="true">
+                        <option value="1"  {% if form_data.number_of_passengers == 1  %}selected{% endif %}>1 Passenger</option>
+                        <option value="2"  {% if form_data.number_of_passengers == 2  or not form_data.number_of_passengers %}selected{% endif %}>2 Passengers</option>
+                        <option value="3"  {% if form_data.number_of_passengers == 3  %}selected{% endif %}>3 Passengers</option>
+                        <option value="4"  {% if form_data.number_of_passengers == 4  %}selected{% endif %}>4 Passengers</option>
+                        <option value="5"  {% if form_data.number_of_passengers == 5  %}selected{% endif %}>5 Passengers</option>
+                        <option value="6"  {% if form_data.number_of_passengers == 6  %}selected{% endif %}>6 Passengers</option>
+                        <option value="7"  {% if form_data.number_of_passengers == 7  %}selected{% endif %}>7 Passengers</option>
+                        <option value="8"  {% if form_data.number_of_passengers == 8  %}selected{% endif %}>8 Passengers</option>
+                        <option value="9"  {% if form_data.number_of_passengers == 9  %}selected{% endif %}>9 Passengers</option>
+                        <option value="10" {% if form_data.number_of_passengers == 10 %}selected{% endif %}>10 Passengers</option>
+                    </select>
+                </div>
+
+                <div class="tbf__f">
+                    <label for="tbfBags">Bags / Luggage <span class="tbf__req" aria-hidden="true">*</span></label>
+                    <select id="tbfBags" name="number_of_bags" aria-required="true">
+                        <option value="0">No bags</option>
+                        <option value="1">1 Bag</option>
+                        <option value="2" {% if not form_data.number_of_bags or form_data.number_of_bags == 2 %}selected{% endif %}>2 Bags</option>
+                        <option value="3">3 Bags</option>
+                        <option value="4">4 Bags</option>
+                        <option value="5">5 Bags</option>
+                        <option value="6">6 Bags</option>
+                        <option value="7">7 Bags</option>
+                        <option value="8">8 Bags</option>
+                    </select>
+                </div>
+
+                <div class="tbf__f tbf__s2">
+                    <label for="tbf-instr">Special Instructions
+                        <small style="text-transform:none;letter-spacing:0;font-weight:300;color:var(--tbf-ink-muted);">(optional)</small>
+                    </label>
+                    <textarea id="tbf-instr" name="special_instruction"
+                              placeholder="Any specific requests, accessibility needs, preferred stops, or notes for your SevenStar Limo driver…"
+                              rows="3">{{ form_data.special_instruction|default:'' }}</textarea>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ── Price summary ────────────────────────────────────── -->
+        <div class="tbf__price-card" aria-label="Booking price">
+            <div>
+                <div class="tbf__price-label">Total Price</div>
+                <div class="tbf__price-amt">A${{ price_info.final_price }}</div>
+                <div class="tbf__price-note">
+                    {% if price_info.price_note %}{{ price_info.price_note }}{% else %}per booking{% endif %}
+                    &nbsp;&middot;&nbsp; incl. 3% Stripe fee
+                </div>
+            </div>
+            <div class="tbf__price-right">
+                <strong>Fixed price — no hidden fees.</strong><br>
+                Secure payment via Stripe.<br>
+                Confirmation sent instantly to your email.
+            </div>
+        </div>
+
+        {# ── Submit — mirrors bf__btn exactly ── #}
+        <button type="submit" class="tbf__btn" id="tbfSubmit">
+            <span id="tbfBtnTxt">Book &amp; Pay Securely</span>
+            <svg id="tbfBtnArrow" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                <path d="M4 9h10M10 5l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="tbf__spin" id="tbfSpin" aria-hidden="true"></div>
+        </button>
+
+        <p class="tbf__note">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <rect x="3" y="7" width="8" height="6" rx="1" stroke="#a09890" stroke-width="1.2"/>
+                <path d="M5 7V5a2 2 0 0 1 4 0v2" stroke="#a09890" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+            Secure checkout powered by Stripe — your card details are never stored.
+        </p>
+
+    </form>
+</div><!-- /.tbf__wrap -->
+</div><!-- /.tbf__page -->
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+/* ── Google Places autocomplete — mirrors bfMapsReady / bfSetupAC ── */
+function tbfSetupAC(inputEl, listEl) {
+    if (!inputEl || !listEl) return;
+    var svc = null, items = [], hi = -1;
+
+    function getService() {
+        if (!svc && window.google && window.google.maps && window.google.maps.places) {
+            svc = new window.google.maps.places.AutocompleteService();
+        }
+        return svc;
+    }
+
+    inputEl.addEventListener('input', function () {
+        var v = inputEl.value.trim();
+        if (v.length < 3) { listEl.classList.remove('open'); return; }
+        var s = getService();
+        if (!s) return;
+        s.getPlacePredictions(
+            { input: v, componentRestrictions: { country: 'au' } },
+            function (preds, status) {
+                if (status !== window.google.maps.places.PlacesServiceStatus.OK || !preds) {
+                    listEl.classList.remove('open'); return;
+                }
+                items = preds; hi = -1;
+                listEl.innerHTML = preds.map(function (p, i) {
+                    return '<div class="tbf__aci" data-i="' + i + '">' +
+                        '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">' +
+                        '<path d="M7 1C4.791 1 3 2.791 3 5c0 3 4 8 4 8s4-5 4-8c0-2.209-1.791-4-4-4z"' +
+                        ' stroke="#b8902e" stroke-width="1.2" fill="none"/>' +
+                        '<circle cx="7" cy="5" r="1.3" fill="#b8902e"/></svg>' +
+                        '<span>' + p.description + '</span></div>';
+                }).join('');
+                listEl.classList.add('open');
+            }
+        );
+    });
+
+    listEl.addEventListener('click', function (e) {
+        var it = e.target.closest('.tbf__aci');
+        if (!it) return;
+        inputEl.value = items[parseInt(it.dataset.i, 10)].description;
+        listEl.classList.remove('open');
+    });
+
+    inputEl.addEventListener('keydown', function (e) {
+        var rows = listEl.querySelectorAll('.tbf__aci');
+        if (e.key === 'ArrowDown') {
+            hi = Math.min(hi + 1, rows.length - 1); tbfHL(rows); e.preventDefault();
+        } else if (e.key === 'ArrowUp') {
+            hi = Math.max(hi - 1, -1); tbfHL(rows); e.preventDefault();
+        } else if (e.key === 'Enter' && hi >= 0) {
+            inputEl.value = items[hi].description;
+            listEl.classList.remove('open'); e.preventDefault();
+        } else if (e.key === 'Escape') {
+            listEl.classList.remove('open');
+        }
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!inputEl.contains(e.target) && !listEl.contains(e.target)) {
+            listEl.classList.remove('open');
+        }
+    });
+
+    function tbfHL(rows) {
+        rows.forEach(function (r, i) { r.classList.toggle('hi', i === hi); });
+    }
+}
+
+/* Called by Google Maps script tag — mirrors bfMapsReady */
+window.tbfMapsReady = function () {
+    tbfSetupAC(
+        document.getElementById('tbfPickup'),
+        document.getElementById('tbfPickupList')
+    );
+};
+
+/* ── Date min = today — mirrors bfInit date logic ── */
+(function () {
+    var d = document.getElementById('tbfDate');
+    if (d) {
+        var today = new Date().toISOString().split('T')[0];
+        d.min = today;
+        if (!d.value) d.value = today;
+    }
+}());
+
+/* ── Submit loading state — mirrors bf__ form submit handler ── */
+(function () {
+    var form = document.getElementById('tbfForm');
+    if (!form) return;
+    form.addEventListener('submit', function () {
+        var btn     = document.getElementById('tbfSubmit');
+        var spinner = document.getElementById('tbfSpin');
+        var arrow   = document.getElementById('tbfBtnArrow');
+        var txtEl   = document.getElementById('tbfBtnTxt');
+        if (btn)     btn.disabled           = true;
+        if (spinner) spinner.style.display  = 'block';
+        if (arrow)   arrow.style.display    = 'none';
+        if (txtEl)   txtEl.textContent      = 'Processing…';
+    });
+}());
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_key }}&libraries=places&callback=tbfMapsReady" async defer></script>
+{% endblock %}

@@ -1,0 +1,436 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Victoria Tours | SevenStar Limo & Chauffeur Melbourne{% endblock %}
+
+{% block meta_description %}Discover SevenStar Limo's curated Victoria tour experiences — Yarra Valley wine tours, Great Ocean Road, Grampians, Peninsula Hot Springs, ski tours and more. Private chauffeur-driven tours from Melbourne.{% endblock %}
+
+{% block meta_robots %}index, follow{% endblock %}
+
+{% block canonical_url %}https://www.sevenstarlimo.com.au/tours/{% endblock %}
+
+{% block og_title %}Victoria Tours | SevenStar Limo Chauffeur Experiences{% endblock %}
+{% block og_description %}Private chauffeur-driven tours across Victoria. Wine, coast, mountains, spas — experience it all in luxury with SevenStar Limo.{% endblock %}
+{% block og_url %}https://www.sevenstarlimo.com.au/tours/{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ════════════════════════════════════════════════════════════════
+   TOUR SELECT PAGE — ts__ prefix
+   Matches booking_form.css exactly:
+   cream background · white cards · bf__ token names mirrored
+════════════════════════════════════════════════════════════════ */
+
+.ts__page {
+    --ts-ink:       #1a1714;
+    --ts-ink-2:     #2e2a26;
+    --ts-ink-soft:  #4a4540;
+    --ts-ink-muted: #a09890;
+    --ts-cream:     #faf8f3;
+    --ts-cream-2:   #f3efe6;
+    --ts-white:     #ffffff;
+    --ts-gold:      #b8902e;
+    --ts-gold-lt:   #d4aa4a;
+    --ts-gold-dk:   #9a7520;
+    --ts-gold-bg:   rgba(184,144,46,0.07);
+    --ts-gold-ring: rgba(184,144,46,0.18);
+    --ts-border:    #e8e2d6;
+    --ts-serif:     'Cormorant Garamond', Georgia, serif;
+    --ts-sans:      'Jost', system-ui, sans-serif;
+    --ts-ease:      cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --ts-r:         14px;
+    --ts-rs:        10px;
+    --ts-shadow:    0 2px 24px rgba(26,23,20,.06);
+    --ts-shadow-h:  0 8px 40px rgba(26,23,20,.12);
+
+    font-family: var(--ts-sans);
+    background: var(--ts-cream);
+    color: var(--ts-ink);
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* ════════════════════════════════════════════════════════════
+   HERO — mirrors bf__hero exactly
+════════════════════════════════════════════════════════════ */
+.ts__hero {
+    background: var(--ts-ink);
+    padding: calc(36px + 68px + 2.5rem) 2rem 0;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.ts__hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 80% 55% at 50% 110%, rgba(184,144,46,.2) 0%, transparent 70%),
+        linear-gradient(180deg, rgba(26,23,20,.96) 0%, rgba(26,23,20,.88) 100%),
+        url("{% static 'img/hero-car.jpg' %}") center / cover no-repeat;
+}
+.ts__hero-rule {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 2px;
+    background: linear-gradient(to right, transparent, var(--ts-gold), transparent);
+}
+.ts__hero-inner { position: relative; z-index: 2; }
+
+.ts__eyebrow {
+    font-size: .6rem;
+    font-weight: 600;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--ts-gold-lt);
+    display: inline-flex;
+    align-items: center;
+    gap: .65rem;
+    margin-bottom: .9rem;
+}
+.ts__eyebrow::before,
+.ts__eyebrow::after {
+    content: '';
+    width: 20px;
+    height: 1px;
+    background: var(--ts-gold-lt);
+}
+.ts__hero h1 {
+    font-family: var(--ts-serif);
+    font-size: clamp(1.9rem, 5vw, 3rem);
+    font-weight: 300;
+    color: #f8f5ef;
+    line-height: 1.1;
+    letter-spacing: -.02em;
+    margin: 0;
+}
+.ts__hero h1 em { font-style: italic; color: var(--ts-gold-lt); }
+.ts__hero-sub {
+    margin-top: .55rem;
+    color: rgba(248,245,239,.45);
+    font-size: .88rem;
+    font-weight: 300;
+}
+
+/* stats strip — sits inside the dark hero before the rule */
+.ts__stats {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    flex-wrap: wrap;
+    margin-top: 1.6rem;
+    padding-bottom: 2.2rem;
+    position: relative;
+    z-index: 2;
+}
+.ts__stat-num {
+    font-family: var(--ts-serif);
+    font-size: 1.8rem;
+    font-weight: 400;
+    color: var(--ts-gold-lt);
+    line-height: 1;
+    display: block;
+}
+.ts__stat-lbl {
+    font-size: .6rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: rgba(248,245,239,.38);
+    margin-top: .2rem;
+    display: block;
+}
+
+/* ════════════════════════════════════════════════════════════
+   PAGE BODY — mirrors bf__wrap
+════════════════════════════════════════════════════════════ */
+.ts__wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2.8rem 1.5rem 6rem;
+}
+
+/* section header — mirrors bf__sh */
+.ts__sh {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin-bottom: 1.6rem;
+}
+.ts__sn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--ts-ink);
+    color: #fff;
+    font-size: .8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.ts__sh h2 {
+    font-family: var(--ts-serif);
+    font-size: 1.15rem;
+    font-weight: 500;
+    color: var(--ts-ink);
+    margin: 0;
+    letter-spacing: -.01em;
+}
+.ts__sh h2 em { font-style: italic; color: var(--ts-gold); }
+
+/* ════════════════════════════════════════════════════════════
+   TOUR CARDS — white card, border, shadow, gold hover
+   Mirrors bf__vc card pattern + bf__card pattern
+════════════════════════════════════════════════════════════ */
+.ts__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(285px, 1fr));
+    gap: 1rem;
+}
+
+.ts__card {
+    display: block;
+    text-decoration: none;
+    background: var(--ts-white);
+    border: 1.5px solid var(--ts-border);
+    border-radius: var(--ts-r);
+    box-shadow: var(--ts-shadow);
+    padding: 1.5rem 1.5rem 1.3rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .2s var(--ts-ease),
+                box-shadow .25s var(--ts-ease),
+                transform .2s var(--ts-ease),
+                background .2s var(--ts-ease);
+}
+/* gold top bar — same as bf__card::before */
+.ts__card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(to right, var(--ts-gold), var(--ts-gold-lt) 55%, transparent);
+    opacity: 0;
+    transition: opacity .25s;
+}
+.ts__card:hover {
+    border-color: var(--ts-gold-lt);
+    box-shadow: var(--ts-shadow-h);
+    transform: translateY(-3px);
+    background: var(--ts-gold-bg);
+}
+.ts__card:hover::before { opacity: 1; }
+
+/* top row: emoji left, price right */
+.ts__card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .6rem;
+    margin-bottom: .85rem;
+}
+.ts__card-emoji {
+    font-size: 1.55rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+.ts__card-price { text-align: right; flex-shrink: 0; }
+.ts__card-price-amt {
+    font-family: var(--ts-serif);
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--ts-gold-dk);
+    line-height: 1;
+}
+.ts__card-price-note {
+    font-size: .63rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ts-ink-muted);
+    margin-top: .18rem;
+}
+
+/* tour name — mirrors bf__vname */
+.ts__card-name {
+    font-family: var(--ts-serif);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--ts-ink);
+    line-height: 1.25;
+    margin-bottom: .35rem;
+    transition: color .2s;
+}
+.ts__card:hover .ts__card-name { color: var(--ts-gold-dk); }
+
+/* tagline — mirrors bf__vmeta */
+.ts__card-tagline {
+    font-size: .8rem;
+    line-height: 1.6;
+    color: var(--ts-ink-soft);
+    margin-bottom: 1.1rem;
+}
+
+/* CTA arrow link */
+.ts__card-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    font-size: .63rem;
+    font-weight: 600;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--ts-gold);
+    transition: gap .2s, color .2s;
+}
+.ts__card:hover .ts__card-cta { gap: .7rem; color: var(--ts-gold-dk); }
+.ts__card-cta svg { transition: transform .2s var(--ts-ease); }
+.ts__card:hover .ts__card-cta svg { transform: translateX(3px); }
+
+/* selected-state ring — mirrors bf__vc.sel, for keyboard focus */
+.ts__card:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--ts-gold-ring), var(--ts-shadow-h);
+    border-color: var(--ts-gold);
+}
+
+/* ── Reveal animation ────────────────────────────────────────── */
+.ts__reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity .55s var(--ts-ease), transform .55s var(--ts-ease);
+}
+.ts__reveal.ts__visible { opacity: 1; transform: none; }
+.ts__d1  { transition-delay: .04s; }
+.ts__d2  { transition-delay: .08s; }
+.ts__d3  { transition-delay: .12s; }
+.ts__d4  { transition-delay: .16s; }
+.ts__d5  { transition-delay: .20s; }
+.ts__d6  { transition-delay: .24s; }
+.ts__d7  { transition-delay: .28s; }
+.ts__d8  { transition-delay: .32s; }
+.ts__d9  { transition-delay: .36s; }
+.ts__d10 { transition-delay: .40s; }
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .ts__hero { padding: calc(36px + 68px + 1.8rem) 1.25rem 0; }
+    .ts__wrap { padding: 2rem 1rem 4rem; }
+    .ts__stats { gap: 1.6rem; }
+}
+@media (max-width: 540px) {
+    .ts__grid { grid-template-columns: 1fr; }
+    .ts__stats { gap: 1rem; }
+    .ts__stat-num { font-size: 1.4rem; }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="ts__page">
+
+<!-- ── Hero — identical dark band to booking form ────────────── -->
+<div class="ts__hero" role="banner">
+    <div class="ts__hero-bg" role="img" aria-label="SevenStar Limo luxury chauffeur vehicle"></div>
+    <div class="ts__hero-rule" aria-hidden="true"></div>
+    <div class="ts__hero-inner">
+
+        <p class="ts__eyebrow">SevenStar Limo &amp; Chauffeur Melbourne</p>
+
+        <h1>Explore Victoria <em>in Style</em></h1>
+        <p class="ts__hero-sub">Private chauffeur-driven tour experiences across Melbourne &amp; Victoria</p>
+
+        <div class="ts__stats" aria-label="Tour service highlights">
+            <div>
+                <span class="ts__stat-num">10</span>
+                <span class="ts__stat-lbl">Curated Tours</span>
+            </div>
+            <div>
+                <span class="ts__stat-num">5★</span>
+                <span class="ts__stat-lbl">Rated Service</span>
+            </div>
+            <div>
+                <span class="ts__stat-num">24/7</span>
+                <span class="ts__stat-lbl">Available</span>
+            </div>
+            <div>
+                <span class="ts__stat-num">100%</span>
+                <span class="ts__stat-lbl">Private &amp; Personal</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ── Tour grid — cream bg, white cards ────────────────────── -->
+<div class="ts__wrap">
+
+    <div class="ts__sh ts__reveal">
+        <div class="ts__sn" aria-hidden="true">✦</div>
+        <h2>Select Your <em>Tour Experience</em></h2>
+    </div>
+
+    <div class="ts__grid" role="list">
+        {% for tour in tours %}
+        {# delay classes cycle 1–10 #}
+        {% with d=forloop.counter %}
+        <a href="{% url 'tours' %}?type={{ tour.key }}"
+           class="ts__card ts__reveal ts__d{{ d }}"
+           role="listitem"
+           aria-label="{{ tour.label }} — A${{ tour.final_price }}">
+
+            <div class="ts__card-top">
+                <span class="ts__card-emoji" aria-hidden="true">{{ tour.emoji }}</span>
+                <div class="ts__card-price">
+                    <div class="ts__card-price-amt">A${{ tour.final_price }}</div>
+                    <div class="ts__card-price-note">
+                        {% if tour.price_note %}{{ tour.price_note }}{% else %}per booking{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="ts__card-name">{{ tour.label }}</h3>
+            <p class="ts__card-tagline">{{ tour.tagline }}</p>
+
+            <span class="ts__card-cta">
+                Book This Tour
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="12 5 19 12 12 19"/>
+                </svg>
+            </span>
+
+        </a>
+        {% endwith %}
+        {% endfor %}
+    </div>
+
+</div><!-- /.ts__wrap -->
+</div><!-- /.ts__page -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+    var els = document.querySelectorAll('.ts__reveal');
+    if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) {
+                if (e.isIntersecting) {
+                    e.target.classList.add('ts__visible');
+                    io.unobserve(e.target);
+                }
+            });
+        }, { threshold: 0.07 });
+        els.forEach(function (el) { io.observe(el); });
+    } else {
+        els.forEach(function (el) { el.classList.add('ts__visible'); });
+    }
+}());
+</script>
+{% endblock %}

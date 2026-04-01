@@ -41,7 +41,12 @@
             <li class="nav__item">
                 <a href="{% url 'about' %}" class="nav__link">About</a>
             </li>
-
+            
+            <!-- Tours -->
+            <li class="nav__item">
+                <a href="{% url 'tours' %}" class="nav__link">Book Tours</a>
+            </li>
+            
             <!-- Booking Dropdown -->
             <li class="nav__item nav__item--dropdown" aria-haspopup="true">
                 <button class="nav__link nav__link--drop"
@@ -338,6 +343,7 @@
 
                 <li><a href="{% url 'home' %}" class="nav__mob-link">Home</a></li>
                 <li><a href="{% url 'about' %}" class="nav__mob-link">About</a></li>
+                <li><a href="{% url 'tours' %}" class="nav__mob-link">Book Tour</a></li>
 
                 <!-- Mobile Booking Accordion -->
                 <li class="nav__mob-acc">

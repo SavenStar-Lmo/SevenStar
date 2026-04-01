@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Payment Not Completed — {{ booking.get_tour_type_display }} | SevenStar Limo{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ════════════════════════════════════════════════════════════════
+   TOUR CANCELLED — tca__ prefix
+   Scoped under [data-page="tour-cancelled"]
+════════════════════════════════════════════════════════════════ */
+[data-page="tour-cancelled"] {
+    --tca-gold:     #b8902e;
+    --tca-gold-lt:  #d4aa4a;
+    --tca-gold-dk:  #9a7520;
+    --tca-gold-bg:  rgba(184,144,46,0.08);
+    --tca-amber:    #e8a030;
+    --tca-amber-bg: rgba(232,160,48,0.08);
+    --tca-ink:      #0e0c0a;
+    --tca-ink2:     #141210;
+    --tca-ink3:     #1c1916;
+    --tca-text:     #e8e2d6;
+    --tca-muted:    #7a7470;
+    --tca-border:   rgba(184,144,46,0.15);
+    --tca-border2:  rgba(255,255,255,0.06);
+    --tca-serif:    'Cormorant Garamond', Georgia, serif;
+    --tca-sans:     'Jost', system-ui, sans-serif;
+    --tca-ease:     cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+[data-page="tour-cancelled"] {
+    font-family: var(--tca-sans);
+    background: var(--tca-ink);
+    color: var(--tca-text);
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+}
+
+/* ── Page shell ──────────────────────────────────────────────── */
+.tca__page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: calc(36px + 68px + 3rem) 2rem 5rem;
+    position: relative;
+    overflow: hidden;
+}
+.tca__page::before {
+    content: '';
+    position: fixed;
+    top: -10vh;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 700px;
+    height: 700px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(232,160,48,0.05) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.tca__inner {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 600px;
+}
+
+/* ── Icon ────────────────────────────────────────────────────── */
+.tca__icon-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+.tca__icon-ring {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    background: var(--tca-amber-bg);
+    border: 1px solid rgba(232,160,48,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: tca-pop 0.6s 0.1s var(--tca-ease) both;
+}
+@keyframes tca-pop {
+    from { opacity:0; transform:scale(0.7); }
+    to   { opacity:1; transform:scale(1); }
+}
+
+/* ── Text header ─────────────────────────────────────────────── */
+.tca__hdr {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    animation: tca-up 0.7s 0.25s var(--tca-ease) both;
+}
+.tca__eyebrow {
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--tca-amber);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+}
+.tca__eyebrow::before,
+.tca__eyebrow::after {
+    content: '';
+    width: 24px; height: 1px;
+    background: rgba(232,160,48,0.35);
+}
+.tca__h1 {
+    font-family: var(--tca-serif);
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    font-weight: 400;
+    color: #f8f5ef;
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.7rem;
+}
+.tca__h1 em { font-style: italic; color: var(--tca-gold-lt); }
+.tca__sub {
+    font-size: 0.9rem;
+    line-height: 1.75;
+    color: rgba(248,245,239,0.55);
+    max-width: 400px;
+    margin: 0 auto;
+}
+@keyframes tca-up {
+    from { opacity:0; transform:translateY(18px); }
+    to   { opacity:1; transform:none; }
+}
+
+/* ── Info card ───────────────────────────────────────────────── */
+.tca__card {
+    background: var(--tca-ink3);
+    border: 1px solid var(--tca-border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+    animation: tca-up 0.7s 0.4s var(--tca-ease) both;
+}
+.tca__card-hdr {
+    background: var(--tca-amber-bg);
+    border-bottom: 1px solid rgba(232,160,48,0.12);
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+.tca__card-emoji { font-size: 1.2rem; line-height: 1; }
+.tca__card-title {
+    font-family: var(--tca-serif);
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: #e8e2d6;
+}
+.tca__rows { padding: 0.5rem 0; }
+.tca__row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.8rem 1.5rem;
+    border-bottom: 1px solid var(--tca-border2);
+    font-size: 0.855rem;
+}
+.tca__row:last-child { border-bottom: none; }
+.tca__row-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--tca-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding-top: 1px;
+}
+.tca__row-val {
+    color: rgba(248,245,239,0.7);
+    text-align: right;
+    line-height: 1.5;
+}
+
+/* ── Notice ──────────────────────────────────────────────────── */
+.tca__notice {
+    background: var(--tca-ink3);
+    border: 1px solid var(--tca-border);
+    border-left: 3px solid var(--tca-amber);
+    border-radius: 8px;
+    padding: 1.2rem 1.4rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.85rem;
+    line-height: 1.75;
+    color: rgba(248,245,239,0.6);
+    animation: tca-up 0.7s 0.5s var(--tca-ease) both;
+}
+.tca__notice strong { color: rgba(248,245,239,0.85); font-weight: 400; }
+
+/* ── Actions ─────────────────────────────────────────────────── */
+.tca__actions {
+    display: flex;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+    animation: tca-up 0.7s 0.6s var(--tca-ease) both;
+}
+.tca__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    padding: 0.85rem 1.6rem;
+    border-radius: 6px;
+    font-family: var(--tca-sans);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background 0.25s, transform 0.2s, box-shadow 0.25s, color 0.25s;
+    cursor: pointer;
+    border: none;
+    flex: 1;
+    min-width: 160px;
+}
+.tca__btn--gold {
+    background: var(--tca-gold);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(184,144,46,0.25);
+}
+.tca__btn--gold:hover {
+    background: var(--tca-gold-dk);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(184,144,46,0.35);
+}
+.tca__btn--ghost {
+    background: transparent;
+    color: rgba(248,245,239,0.6);
+    border: 1px solid var(--tca-border);
+}
+.tca__btn--ghost:hover {
+    border-color: var(--tca-gold);
+    color: var(--tca-gold-lt);
+    background: var(--tca-gold-bg);
+}
+.tca__btn:active { transform: translateY(0); }
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 540px) {
+    .tca__page { padding: calc(36px + 68px + 2rem) 1.25rem 4rem; }
+    .tca__actions { flex-direction: column; }
+    .tca__btn { min-width: unset; }
+    .tca__row { flex-direction: column; gap: 0.25rem; }
+    .tca__row-val { text-align: left; }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div data-page="tour-cancelled">
+<div class="tca__page">
+<div class="tca__inner">
+
+    <!-- Icon -->
+    <div class="tca__icon-wrap">
+        <div class="tca__icon-ring">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none"
+                 stroke="#e8a030" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round"
+                 aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="tca__hdr">
+        <p class="tca__eyebrow">Payment Not Completed</p>
+        <h1 class="tca__h1">Your booking was <em>not confirmed</em></h1>
+        <p class="tca__sub">
+            It looks like the payment step was not completed. No charge has been made
+            to your card. Please try again or contact our team for assistance.
+        </p>
+    </div>
+
+    <!-- Booking attempt details -->
+    <div class="tca__card" aria-label="Booking attempt summary">
+        <div class="tca__card-hdr">
+            <span class="tca__card-emoji" aria-hidden="true">{{ tour_info.emoji }}</span>
+            <span class="tca__card-title">{{ booking.get_tour_type_display }}</span>
+        </div>
+        <div class="tca__rows">
+            <div class="tca__row">
+                <span class="tca__row-label">Name</span>
+                <span class="tca__row-val">{{ booking.passenger_name }}</span>
+            </div>
+            <div class="tca__row">
+                <span class="tca__row-label">Pickup</span>
+                <span class="tca__row-val">{{ booking.pickup_address }}</span>
+            </div>
+            <div class="tca__row">
+                <span class="tca__row-label">Date</span>
+                <span class="tca__row-val">{{ booking.booking_date }}</span>
+            </div>
+            <div class="tca__row">
+                <span class="tca__row-label">Passengers</span>
+                <span class="tca__row-val">{{ booking.number_of_passengers }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notice -->
+    <div class="tca__notice" role="note">
+        <strong>No payment was taken.</strong> Your booking has not been confirmed.
+        To complete your {{ booking.get_tour_type_display }} reservation, please
+        try booking again or contact the SevenStar Limo team directly and quote
+        reference <strong>#{{ booking.id|stringformat:"06d" }}</strong>.
+    </div>
+
+    <!-- Actions -->
+    <div class="tca__actions">
+        <a href="{% url 'tours' %}?type={{ booking.tour_type }}"
+           class="tca__btn tca__btn--gold">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <polyline points="1 4 1 10 7 10"/>
+                <path d="M3.51 15a9 9 0 1 0 .49-4.95"/>
+            </svg>
+            Try Again
+        </a>
+        <a href="{% url 'tours' %}" class="tca__btn tca__btn--ghost">
+            All Tours
+        </a>
+    </div>
+
+</div>
+</div>
+</div>
+{% endblock %}

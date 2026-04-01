@@ -23,4 +23,5 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('X7N9bV2yP8uR5dL6qQyH3zT4cQ1dA0hE4gT6oF3bV9mN2pU8sA7dWqQyH3zT4c1-admin/', admin.site.urls),
     path('book-now/', include('orders.urls')),
+    path('book-tours/', include('tours.urls')),
 ]

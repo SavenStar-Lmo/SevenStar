@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Booking Confirmed — {{ booking.get_tour_type_display }} | SevenStar Limo{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ════════════════════════════════════════════════════════════════
+   TOUR CONFIRMED — tc__ prefix
+   Scoped under [data-page="tour-confirmed"]
+════════════════════════════════════════════════════════════════ */
+[data-page="tour-confirmed"] {
+    --tc-gold:     #b8902e;
+    --tc-gold-lt:  #d4aa4a;
+    --tc-gold-dk:  #9a7520;
+    --tc-gold-bg:  rgba(184,144,46,0.08);
+    --tc-green:    #4caf7d;
+    --tc-green-bg: rgba(76,175,125,0.1);
+    --tc-ink:      #0e0c0a;
+    --tc-ink2:     #141210;
+    --tc-ink3:     #1c1916;
+    --tc-text:     #e8e2d6;
+    --tc-muted:    #7a7470;
+    --tc-border:   rgba(184,144,46,0.15);
+    --tc-border2:  rgba(255,255,255,0.06);
+    --tc-serif:    'Cormorant Garamond', Georgia, serif;
+    --tc-sans:     'Jost', system-ui, sans-serif;
+    --tc-ease:     cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+[data-page="tour-confirmed"] {
+    font-family: var(--tc-sans);
+    background: var(--tc-ink);
+    color: var(--tc-text);
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+}
+
+/* ── Page shell ──────────────────────────────────────────────── */
+.tc__page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: calc(36px + 68px + 3rem) 2rem 5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Background radial glow */
+.tc__page::before {
+    content: '';
+    position: fixed;
+    top: -10vh;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 700px;
+    height: 700px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(76,175,125,0.07) 0%, transparent 70%);
+    pointer-events: none;
+}
+.tc__page::after {
+    content: '';
+    position: fixed;
+    bottom: -20vh;
+    right: -10vw;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(184,144,46,0.05) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.tc__inner {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 640px;
+}
+
+/* ── Success icon ────────────────────────────────────────────── */
+.tc__icon-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+.tc__icon-ring {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    background: var(--tc-green-bg);
+    border: 1px solid rgba(76,175,125,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: tc-pop 0.6s 0.1s var(--tc-ease) both;
+    position: relative;
+}
+.tc__icon-ring::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 1px solid rgba(76,175,125,0.12);
+    animation: tc-pulse 2.5s 0.8s ease-in-out infinite;
+}
+@keyframes tc-pop {
+    from { opacity:0; transform:scale(0.7); }
+    to   { opacity:1; transform:scale(1); }
+}
+@keyframes tc-pulse {
+    0%,100% { transform:scale(1);   opacity:1; }
+    50%      { transform:scale(1.15); opacity:0; }
+}
+.tc__check {
+    color: var(--tc-green);
+}
+
+/* ── Text header ─────────────────────────────────────────────── */
+.tc__hdr {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    animation: tc-up 0.7s 0.25s var(--tc-ease) both;
+}
+.tc__eyebrow {
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--tc-green);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+}
+.tc__eyebrow::before,
+.tc__eyebrow::after {
+    content: '';
+    width: 24px; height: 1px;
+    background: rgba(76,175,125,0.4);
+}
+.tc__h1 {
+    font-family: var(--tc-serif);
+    font-size: clamp(2.2rem, 5vw, 3rem);
+    font-weight: 400;
+    color: #f8f5ef;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.7rem;
+}
+.tc__h1 em { font-style: italic; color: var(--tc-gold-lt); }
+.tc__sub {
+    font-size: 0.9rem;
+    line-height: 1.75;
+    color: rgba(248,245,239,0.55);
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+@keyframes tc-up {
+    from { opacity:0; transform:translateY(18px); }
+    to   { opacity:1; transform:none; }
+}
+
+/* ── Booking card ────────────────────────────────────────────── */
+.tc__card {
+    background: var(--tc-ink3);
+    border: 1px solid var(--tc-border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+    animation: tc-up 0.7s 0.4s var(--tc-ease) both;
+}
+
+.tc__card-hdr {
+    background: var(--tc-gold-bg);
+    border-bottom: 1px solid var(--tc-border);
+    padding: 1.1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.tc__card-hdr-left {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+.tc__card-emoji { font-size: 1.3rem; line-height: 1; }
+.tc__card-tour {
+    font-family: var(--tc-serif);
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #f0ece4;
+}
+.tc__ref {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--tc-gold);
+    background: rgba(184,144,46,0.12);
+    padding: 0.3rem 0.75rem;
+    border-radius: 4px;
+    border: 1px solid var(--tc-border);
+}
+
+/* ── Detail rows ─────────────────────────────────────────────── */
+.tc__rows { padding: 0.5rem 0; }
+.tc__row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1.5rem;
+    border-bottom: 1px solid var(--tc-border2);
+    font-size: 0.855rem;
+}
+.tc__row:last-child { border-bottom: none; }
+.tc__row-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--tc-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding-top: 1px;
+}
+.tc__row-val {
+    color: #e8e2d6;
+    text-align: right;
+    line-height: 1.5;
+}
+.tc__row-val--gold {
+    font-family: var(--tc-serif);
+    font-size: 1.3rem;
+    font-weight: 400;
+    color: var(--tc-gold-lt);
+}
+
+/* ── Callout box ─────────────────────────────────────────────── */
+.tc__callout {
+    background: var(--tc-ink3);
+    border: 1px solid var(--tc-border);
+    border-left: 3px solid var(--tc-gold);
+    border-radius: 8px;
+    padding: 1.2rem 1.4rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.85rem;
+    line-height: 1.75;
+    color: rgba(248,245,239,0.6);
+    animation: tc-up 0.7s 0.55s var(--tc-ease) both;
+}
+.tc__callout strong { color: var(--tc-gold-lt); font-weight: 500; }
+
+/* ── Action buttons ──────────────────────────────────────────── */
+.tc__actions {
+    display: flex;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+    animation: tc-up 0.7s 0.65s var(--tc-ease) both;
+}
+.tc__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    padding: 0.85rem 1.6rem;
+    border-radius: 6px;
+    font-family: var(--tc-sans);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background 0.25s, transform 0.2s, box-shadow 0.25s, color 0.25s;
+    cursor: pointer;
+    border: none;
+    flex: 1;
+    min-width: 160px;
+}
+.tc__btn--gold {
+    background: var(--tc-gold);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(184,144,46,0.25);
+}
+.tc__btn--gold:hover {
+    background: var(--tc-gold-dk);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(184,144,46,0.35);
+}
+.tc__btn--ghost {
+    background: transparent;
+    color: rgba(248,245,239,0.7);
+    border: 1px solid var(--tc-border);
+}
+.tc__btn--ghost:hover {
+    border-color: var(--tc-gold);
+    color: var(--tc-gold-lt);
+    background: var(--tc-gold-bg);
+}
+.tc__btn:active { transform: translateY(0); }
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 540px) {
+    .tc__page { padding: calc(36px + 68px + 2rem) 1.25rem 4rem; }
+    .tc__actions { flex-direction: column; }
+    .tc__btn { min-width: unset; }
+    .tc__row { flex-direction: column; gap: 0.25rem; }
+    .tc__row-val { text-align: left; }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div data-page="tour-confirmed">
+<div class="tc__page">
+<div class="tc__inner">
+
+    <!-- Success icon -->
+    <div class="tc__icon-wrap">
+        <div class="tc__icon-ring">
+            <svg class="tc__check" width="36" height="36" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round"
+                 aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="tc__hdr">
+        <p class="tc__eyebrow">Payment Confirmed</p>
+        <h1 class="tc__h1">You're all <em>booked in</em></h1>
+        <p class="tc__sub">
+            Thank you, {{ booking.passenger_name }}. Your
+            {{ booking.get_tour_type_display }} is confirmed and a
+            confirmation has been sent to {{ booking.passenger_email }}.
+        </p>
+    </div>
+
+    <!-- Booking details card -->
+    <div class="tc__card" aria-label="Booking summary">
+        <div class="tc__card-hdr">
+            <div class="tc__card-hdr-left">
+                <span class="tc__card-emoji" aria-hidden="true">{{ tour_info.emoji }}</span>
+                <span class="tc__card-tour">{{ booking.get_tour_type_display }}</span>
+            </div>
+            <span class="tc__ref">Ref #{{ booking.id|stringformat:"06d" }}</span>
+        </div>
+        <div class="tc__rows">
+            <div class="tc__row">
+                <span class="tc__row-label">Name</span>
+                <span class="tc__row-val">{{ booking.passenger_name }}</span>
+            </div>
+            <div class="tc__row">
+                <span class="tc__row-label">Pickup</span>
+                <span class="tc__row-val">{{ booking.pickup_address }}</span>
+            </div>
+            <div class="tc__row">
+                <span class="tc__row-label">Date</span>
+                <span class="tc__row-val">{{ booking.booking_date }}</span>
+            </div>
+            <div class="tc__row">
+                <span class="tc__row-label">Time</span>
+                <span class="tc__row-val">{{ booking.booking_time }}</span>
+            </div>
+            <div class="tc__row">
+                <span class="tc__row-label">Passengers</span>
+                <span class="tc__row-val">{{ booking.number_of_passengers }}</span>
+            </div>
+            <div class="tc__row">
+                <span class="tc__row-label">Bags</span>
+                <span class="tc__row-val">{{ booking.number_of_bags }}</span>
+            </div>
+            {% if booking.special_instruction %}
+            <div class="tc__row">
+                <span class="tc__row-label">Instructions</span>
+                <span class="tc__row-val">{{ booking.special_instruction }}</span>
+            </div>
+            {% endif %}
+            <div class="tc__row">
+                <span class="tc__row-label">Amount Paid</span>
+                <span class="tc__row-val tc__row-val--gold">A${{ booking.total_price }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Callout -->
+    <div class="tc__callout" role="note">
+        Please keep your reference number
+        <strong>#{{ booking.id|stringformat:"06d" }}</strong> for any enquiries.
+        Our driver will contact you prior to your tour date to confirm arrangements.
+        A full confirmation has been sent to
+        <strong>{{ booking.passenger_email }}</strong>.
+    </div>
+
+    <!-- Actions -->
+    <div class="tc__actions">
+        <a href="{% url 'tours' %}" class="tc__btn tc__btn--gold">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+            </svg>
+            Book Another Tour
+        </a>
+        <a href="{% url 'orders' %}?type=ptp" class="tc__btn tc__btn--ghost">
+            Book a Transfer
+        </a>
+    </div>
+
+</div>
+</div>
+</div>
+{% endblock %}
