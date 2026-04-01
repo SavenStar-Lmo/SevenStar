@@ -22,7 +22,7 @@ TOUR_TYPE_CHOICES = [
 class TourCar(models.Model):
     name               = models.CharField(max_length=120, help_text="e.g. Mercedes S-Class")
     description        = models.CharField(max_length=255, blank=True, help_text="Short tagline shown on the card")
-    image              = models.ImageField(upload_to="tour_cars/", blank=True, null=True, help_text="Car photo")
+    image              = models.URLField(blank=True, null=True)
     max_passengers     = models.PositiveSmallIntegerField(default=4, help_text="Maximum passengers this vehicle seats")
     display_order      = models.PositiveSmallIntegerField(default=0, help_text="Lower = shown first")
     is_active          = models.BooleanField(default=True)
@@ -38,7 +38,7 @@ class TourCar(models.Model):
     @property
     def image_url(self):
         if self.image:
-            return self.image.url
+            return self.image
         return None
 
 
