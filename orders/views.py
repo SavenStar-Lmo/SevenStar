@@ -464,6 +464,9 @@ def calculate_price(
         discount_amount = 0.00
         final_price     = _apply_stripe(round(subtotal * multiplier, 2))
         discount_label  = ""
+        
+    if service_type_key in ["ptp", "fair", "tair"] and distance_km < 50:
+        final_price = 100.00
 
     return {
         "service_type_key":       service_type_key,
