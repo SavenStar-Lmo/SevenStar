@@ -81,6 +81,11 @@ class Rates(models.Model):
     stop = models.DecimalField(max_digits=6,decimal_places=2,default=15)
     th_rate = models.DecimalField(max_digits=6,decimal_places=2,default=200)
     oh_rate = models.DecimalField(max_digits=6,decimal_places=2,default=100)
+    remote_pickup_multiplier = models.DecimalField(
+        max_digits=15, decimal_places=10, default=1.000,
+        help_text="Applied when pickup is >10 km from Melbourne CBD. "
+                  "E.g. 1.25 = 25% surcharge. Leave at 1.000 for no surcharge."
+    )
     
     def __str__(self):
         return self.name

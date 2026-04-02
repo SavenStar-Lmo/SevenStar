@@ -81,24 +81,6 @@ TOUR_CATALOGUE = {
         ],
         "image": "img/tours/great_ocean_road.jpg",
     },
-    "victorian_winery": {
-        "label":   "Victorian Winery Tours",
-        "emoji":   "🍇",
-        "tagline": "Explore Victoria's diverse wine regions beyond the usual tourist trail.",
-        "about":   (
-            "Victoria is Australia's most diverse wine state, with over a dozen distinct wine "
-            "regions from the alpine valleys of the northeast to the warm Heathcote plains."
-        ),
-        "highlights": [
-            "Tailor-made itineraries across multiple Victorian wine regions.",
-            "Boutique cellar doors not found on mainstream tours.",
-            "Knowledgeable drivers passionate about Victorian wine.",
-            "Paired tastings with artisan cheese and charcuterie.",
-            "Overnight multi-day regional tour packages available.",
-            "Intimate groups and corporate events welcome.",
-        ],
-        "image": "img/tours/victorian_winery.jpg",
-    },
     "golf": {
         "label":   "Golf Tours",
         "emoji":   "⛳",
@@ -236,74 +218,69 @@ def tour_cars_api(request):
 # Main booking view
 # ─────────────────────────────────────────────────────────────────────────────
 
-@login_required
+
 def tour_booking(request):
     valid_keys = {k for k, _ in TOUR_TYPE_CHOICES}
     raw_type   = request.GET.get("type", request.POST.get("tour_type", "")).lower().strip()
 
-    # ── No type → tour selection page ────────────────────────────────────────
     if not raw_type or raw_type not in valid_keys:
-        return render(request, "tours/tour_select.html", {
-            "tours": TOUR_LIST,
-        })
+        return render(request, "tours/tour_select.html", {"tours": TOUR_LIST})
 
     tour_key  = raw_type
     tour_info = TOUR_CATALOGUE[tour_key]
     cars      = list(TourCar.objects.filter(is_active=True).order_by("display_order", "name"))
-
-    # Prefill from user profile
-    prefill_email = request.user.email or ""
+    prefill_email = ""
     prefill_phone = ""
-    try:
-        prefill_phone = request.user.extended_profile.phone or ""
-    except AttributeError:
-        pass
+    if request.user.is_authenticated:
+        prefill_email = request.user.email or ""
+        try:
+            prefill_phone = request.user.extended_profile.phone or ""
+        except AttributeError:
+            pass
 
-    # ── POST ─────────────────────────────────────────────────────────────────
     if request.method == "POST":
-        passenger_name   = request.POST.get("passenger_name", "").strip()
-        passenger_number = request.POST.get("passenger_number", "").strip()
-        passenger_email  = request.POST.get("passenger_email", "").strip()
-        pickup_address   = request.POST.get("pickup_address", "").strip()
-        booking_date_raw = request.POST.get("booking_date", "").strip()
-        booking_time_raw = request.POST.get("booking_time", "").strip()
-        num_passengers   = int(request.POST.get("number_of_passengers", 1))
-        car_id           = request.POST.get("selected_car", "").strip()
-        instructions     = request.POST.get("special_instruction", "").strip()
+        passenger_name    = request.POST.get("passenger_name", "").strip()
+        passenger_number  = request.POST.get("passenger_number", "").strip()
+        passenger_email   = request.POST.get("passenger_email", "").strip()
+        pickup_address    = request.POST.get("pickup_address", "").strip()
+        booking_date_raw  = request.POST.get("booking_date", "").strip()
+        booking_time_raw  = request.POST.get("booking_time", "").strip()
+        return_time_raw   = request.POST.get("return_time", "").strip() 
+        num_passengers    = int(request.POST.get("number_of_passengers", 1))
+        car_id            = request.POST.get("selected_car", "").strip()
+        instructions      = request.POST.get("special_instruction", "").strip()
 
-        # Additional stops — submitted as multiple inputs named "stop[]"
         raw_stops   = request.POST.getlist("stop[]")
         extra_stops = [s.strip() for s in raw_stops if s.strip()]
         stops_text  = "\n".join(extra_stops)
 
         def form_error(msg):
             return render(request, "tours/tour_booking_form.html", {
-                "error":      msg,
-                "tour_key":   tour_key,
-                "tour":       tour_info,
-                "cars":       cars,
+                "error":    msg,
+                "tour_key": tour_key,
+                "tour":     tour_info,
+                "cars":     cars,
                 "form_data": {
-                    "passenger_name":      passenger_name,
-                    "passenger_number":    passenger_number,
-                    "passenger_email":     passenger_email,
-                    "pickup_address":      pickup_address,
-                    "booking_date":        booking_date_raw,
-                    "booking_time":        booking_time_raw,
+                    "passenger_name":       passenger_name,
+                    "passenger_number":     passenger_number,
+                    "passenger_email":      passenger_email,
+                    "pickup_address":       pickup_address,
+                    "booking_date":         booking_date_raw,
+                    "booking_time":         booking_time_raw,
+                    "return_time":          return_time_raw,    # ← NEW
                     "number_of_passengers": num_passengers,
-                    "selected_car":        car_id,
-                    "special_instruction": instructions,
-                    "stops":               extra_stops,
+                    "selected_car":         car_id,
+                    "special_instruction":  instructions,
+                    "stops":                extra_stops,
                 },
                 "google_maps_key": settings.GOOGLE_MAPS_API_KEY,
             })
 
-        # Validate required fields
+        # Validation — email is now optional
         if not passenger_name:
             return form_error("Please enter your full name.")
         if not passenger_number:
             return form_error("Please enter your phone number.")
-        if not passenger_email:
-            return form_error("Please enter your email address.")
         if not pickup_address:
             return form_error("Please enter your pickup address.")
         if not booking_date_raw:
@@ -311,7 +288,6 @@ def tour_booking(request):
         if not booking_time_raw:
             return form_error("Please select a pickup time.")
 
-        # Validate car & passenger cap
         selected_car_obj = None
         if car_id:
             try:
@@ -336,10 +312,18 @@ def tour_booking(request):
         except (ValueError, AttributeError):
             booking_time = datetime.time(8, 0)
 
-        # Save the inquiry
+        # Parse return time — optional
+        return_time = None
+        if return_time_raw:
+            try:
+                h, m = return_time_raw.split(":")
+                return_time = datetime.time(int(h), int(m))
+            except (ValueError, AttributeError):
+                return_time = None
+
         try:
             booking = TourBooking.objects.create(
-                user=request.user,
+                user=request.user if request.user.is_authenticated else None,
                 tour_type=tour_key,
                 passenger_name=passenger_name,
                 passenger_number=passenger_number,
@@ -350,18 +334,21 @@ def tour_booking(request):
                 additional_stops=stops_text,
                 booking_date=booking_date,
                 booking_time=booking_time,
+                return_time=return_time,              # ← NEW
                 special_instruction=instructions or None,
             )
         except Exception as exc:
             return form_error(f"Could not save your inquiry: {exc}")
 
-        # Build WhatsApp message
-        tour_label   = tour_info["label"]
-        car_name     = selected_car_obj.name if selected_car_obj else "Not specified"
-        stops_line   = ""
+        # WhatsApp message
+        tour_label = tour_info["label"]
+        car_name   = selected_car_obj.name if selected_car_obj else "Not specified"
+        stops_line = ""
         if extra_stops:
             stops_formatted = "\n".join([f"  • {s}" for s in extra_stops])
             stops_line = f"\n📍 Additional Stops:\n{stops_formatted}"
+
+        return_line = f"\n🔙 Return Time: {return_time_raw}" if return_time_raw else ""  # ← NEW
 
         wa_message = (
             f"🌟 *SevenStar Limo — Tour Inquiry*\n"
@@ -371,34 +358,37 @@ def tour_booking(request):
             f"━━━━━━━━━━━━━━━━━━━━━\n"
             f"👤 Name: {passenger_name}\n"
             f"📞 Phone: {passenger_number}\n"
-            f"✉️ Email: {passenger_email}\n"
+        )
+        if passenger_email:
+            wa_message += f"✉️ Email: {passenger_email}\n"
+        wa_message += (
             f"━━━━━━━━━━━━━━━━━━━━━\n"
             f"🚗 Vehicle: {car_name}\n"
             f"👥 Passengers: {num_passengers}\n"
             f"📍 Pickup: {pickup_address}"
             f"{stops_line}\n"
             f"📅 Date: {booking_date_raw}\n"
-            f"⏰ Time: {booking_time_raw}\n"
+            f"⏰ Pickup Time: {booking_time_raw}"
+            f"{return_line}\n"
         )
         if instructions:
             wa_message += f"📝 Notes: {instructions}\n"
-        wa_message += f"━━━━━━━━━━━━━━━━━━━━━\n"
-        wa_message += f"I'd like to inquire about this tour. Please confirm availability."
+        wa_message += "━━━━━━━━━━━━━━━━━━━━━\nI'd like to inquire about this tour. Please confirm availability."
 
         wa_url = f"https://wa.me/{WHATSAPP_NUMBER}?text={urllib.parse.quote(wa_message)}"
 
         return render(request, "tours/tour_whatsapp_redirect.html", {
-            "booking":    booking,
-            "tour_info":  tour_info,
-            "wa_url":     wa_url,
+            "booking":   booking,
+            "tour_info": tour_info,
+            "wa_url":    wa_url,
         })
 
-    # ── GET ───────────────────────────────────────────────────────────────────
+    # GET
     form_data = {
-        "passenger_email":      prefill_email,
-        "passenger_number":     prefill_phone,
-        "booking_date":         str(datetime.date.today()),
-        "number_of_passengers": 2,
+        "passenger_email":       prefill_email,
+        "passenger_number":      prefill_phone,
+        "booking_date":          str(datetime.date.today()),
+        "number_of_passengers":  2,
     }
 
     return render(request, "tours/tour_booking_form.html", {
