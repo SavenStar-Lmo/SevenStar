@@ -69,7 +69,7 @@
                     </li>
                     <li role="none">
                         <a href="{% url 'orders' %}?type=fair" class="nav__drop-item" role="menuitem">
-                            <span class="nav__drop-icon" aria-hidden="true">🛬</span>
+                            <span class="nav__drop-icon" aria-hidden="true"><div style="rotate: 180deg;">✈</div></span>
                             <span>
                                 <strong>From Airport</strong>
                                 <small>Pick-up from Melbourne Airport</small>
@@ -355,7 +355,7 @@
                     </button>
                     <ul class="nav__mob-sub" aria-hidden="true">
                         <li><a href="{% url 'orders' %}?type=tair">✈&nbsp; To Airport</a></li>
-                        <li><a href="{% url 'orders' %}?type=fair">🛬&nbsp; From Airport</a></li>
+                        <li><a href="{% url 'orders' %}?type=fair"><div style="rotate: 180deg; padding:0; margin:0; display: inline-flex">✈</div>&nbsp; From Airport</a></li>
                         <li><a href="{% url 'orders' %}?type=ptp">↔&nbsp; Point to Point</a></li>
                         <li><a href="{% url 'orders' %}?type=oh">⏱&nbsp; Hourly / As Directed</a></li>
                         <li><a href="{% url 'orders' %}?type=th">★&nbsp; 2-Hour Package</a></li>

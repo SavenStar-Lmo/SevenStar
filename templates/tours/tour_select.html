@@ -8,6 +8,29 @@
 {% block og_title %}Victoria Tours | SevenStar Limo Chauffeur Experiences{% endblock %}
 {% block og_description %}Private chauffeur-driven tours across Victoria. Wine, coast, mountains, spas — experience it all in luxury with SevenStar Limo.{% endblock %}
 
+{% block extra_schema %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://www.sevenstarlimo.com.au/"
+        },
+        {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Book a Tour",
+            "item": "https://www.sevenstarlimo.com.au/book-tours/"
+        }
+    ]
+}
+</script>
+{% endblock %}
+
 {% block extra_css %}
 <style>
 /* ════════════════════════════════════════════════════════════════
@@ -383,7 +406,7 @@
 
         <div class="ts__stats" aria-label="Service highlights">
             <div class="ts__stat">
-                <span class="ts__stat-num">10</span>
+                <span class="ts__stat-num">9</span>
                 <span class="ts__stat-lbl">Curated Tours</span>
             </div>
             <div class="ts__stat">

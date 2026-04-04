@@ -6,6 +6,29 @@
 {% block meta_robots %}noindex, nofollow{% endblock %}
 {% block canonical_url %}https://www.sevenstarlimo.com.au/tours/?type={{ tour_key }}{% endblock %}
 
+{% block extra_schema %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://www.sevenstarlimo.com.au/"
+        },
+        {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Book a Tour",
+            "item": "https://www.sevenstarlimo.com.au/book-tours/"
+        }
+    ]
+}
+</script>
+{% endblock %}
+
 {% block extra_css %}
 <style>
 /* ════════════════════════════════════════════════════════════════
@@ -644,12 +667,16 @@
                            autocomplete="tel" aria-required="true" required>
                 </div>
 
+                <!-- EMAIL — optional -->
                 <div class="tbf__f tbf__s2">
-                    <label for="tbf-email">Email Address <span class="tbf__req" aria-hidden="true">*</span></label>
+                    <label for="tbf-email">
+                        Email Address
+                        <small style="text-transform:none;letter-spacing:0;font-weight:300;color:var(--tbf-ink-muted);">(optional)</small>
+                    </label>
                     <input type="email" id="tbf-email" name="passenger_email"
                            placeholder="you@example.com.au"
                            value="{{ form_data.passenger_email|default:'' }}"
-                           autocomplete="email" aria-required="true" required>
+                           autocomplete="email">
                 </div>
 
             </div>
@@ -663,7 +690,7 @@
             </div>
             <div class="tbf__g2">
 
-                <!-- Pickup -->
+                <!-- Pickup address — full width -->
                 <div class="tbf__f tbf__s2">
                     <label for="tbfPickup">Pickup Address <span class="tbf__req" aria-hidden="true">*</span></label>
                     <div class="tbf__acw">
@@ -676,7 +703,7 @@
                     </div>
                 </div>
 
-                <!-- Date & Time -->
+                <!-- Date -->
                 <div class="tbf__f">
                     <label for="tbfDate">Tour Date <span class="tbf__req" aria-hidden="true">*</span></label>
                     <input type="date" id="tbfDate" name="booking_date"
@@ -684,18 +711,10 @@
                            aria-required="true" required>
                 </div>
 
-                <div class="tbf__f">
-                    <label for="tbfTime">Pickup Time <span class="tbf__req" aria-hidden="true">*</span></label>
-                    <input type="time" id="tbfTime" name="booking_time"
-                           value="{{ form_data.booking_time|default:'08:00' }}"
-                           aria-required="true" required>
-                </div>
-
                 <!-- Passengers -->
                 <div class="tbf__f">
                     <label for="tbfPass">Passengers <span class="tbf__req" aria-hidden="true">*</span></label>
                     <select id="tbfPass" name="number_of_passengers" aria-required="true">
-                        {% for i in "12345678910"|make_list %}{% endfor %}
                         <option value="1"  {% if form_data.number_of_passengers == 1  %}selected{% endif %}>1 Passenger</option>
                         <option value="2"  {% if form_data.number_of_passengers == 2 or not form_data.number_of_passengers %}selected{% endif %}>2 Passengers</option>
                         <option value="3"  {% if form_data.number_of_passengers == 3  %}selected{% endif %}>3 Passengers</option>
@@ -709,8 +728,26 @@
                     </select>
                 </div>
 
-                <!-- Special instructions -->
+                <!-- Pickup time -->
                 <div class="tbf__f">
+                    <label for="tbfTime">Pickup Time <span class="tbf__req" aria-hidden="true">*</span></label>
+                    <input type="time" id="tbfTime" name="booking_time"
+                           value="{{ form_data.booking_time|default:'08:00' }}"
+                           aria-required="true" required>
+                </div>
+
+                <!-- Return time — NEW, optional -->
+                <div class="tbf__f">
+                    <label for="tbfReturnTime">
+                        Return Time
+                        <small style="text-transform:none;letter-spacing:0;font-weight:300;color:var(--tbf-ink-muted);">(optional)</small>
+                    </label>
+                    <input type="time" id="tbfReturnTime" name="return_time"
+                           value="{{ form_data.return_time|default:'' }}">
+                </div>
+
+                <!-- Special instructions -->
+                <div class="tbf__f tbf__s2">
                     <label for="tbf-instr">Special Instructions
                         <small style="text-transform:none;letter-spacing:0;font-weight:300;color:var(--tbf-ink-muted);">(optional)</small>
                     </label>
@@ -1022,7 +1059,6 @@ function tbfCheckPassengerCap() {
         var maxPax = parseInt(opt.dataset.max, 10);
         var over   = numPax > maxPax;
         opt.classList.toggle('tbf__car-overflow', over);
-        // If currently checked but over capacity, show error state only; don't uncheck automatically
     });
 }
 
@@ -1052,10 +1088,42 @@ document.querySelectorAll('.tbf__car-opt input[type="radio"]').forEach(function 
     }
 }());
 
+/* ── Return time must be after pickup time ───────────────────── */
+document.getElementById('tbfTime').addEventListener('change', function () {
+    var ret = document.getElementById('tbfReturnTime');
+    if (ret) ret.min = this.value || '';
+});
+
 /* ── Form submit loading state ───────────────────────────────── */
 document.getElementById('tbfForm').addEventListener('submit', function (e) {
+    /* Validate return time is after pickup time if both are set */
+    var pickupVal = document.getElementById('tbfTime').value;
+    var returnVal = document.getElementById('tbfReturnTime').value;
+    if (pickupVal && returnVal && returnVal <= pickupVal) {
+        e.preventDefault();
+        var ret = document.getElementById('tbfReturnTime');
+        ret.focus();
+        ret.style.borderColor = 'var(--tbf-err)';
+        ret.style.boxShadow   = '0 0 0 3px rgba(184,50,50,.15)';
+        // Show inline message
+        var existing = document.getElementById('tbfReturnErr');
+        if (!existing) {
+            var msg = document.createElement('span');
+            msg.id = 'tbfReturnErr';
+            msg.style.cssText = 'font-size:.72rem;color:var(--tbf-err);margin-top:.3rem;display:block;';
+            msg.textContent = 'Return time must be after pickup time.';
+            ret.parentNode.appendChild(msg);
+        }
+        return;
+    }
+    // Clear any prior return time error
+    var retErr = document.getElementById('tbfReturnErr');
+    if (retErr) retErr.remove();
+    var retEl = document.getElementById('tbfReturnTime');
+    if (retEl) { retEl.style.borderColor = ''; retEl.style.boxShadow = ''; }
+
     /* Validate car selection vs passenger count */
-    var numPax   = parseInt(document.getElementById('tbfPass').value, 10) || 1;
+    var numPax     = parseInt(document.getElementById('tbfPass').value, 10) || 1;
     var checkedCar = document.querySelector('.tbf__car-opt input[type="radio"]:checked');
     if (checkedCar) {
         var opt    = checkedCar.closest('.tbf__car-opt');
@@ -1066,12 +1134,21 @@ document.getElementById('tbfForm').addEventListener('submit', function (e) {
             return;
         }
     }
+
     var btn  = document.getElementById('tbfSubmit');
     var spin = document.getElementById('tbfSpin');
     var txt  = document.getElementById('tbfBtnTxt');
     if (btn)  btn.disabled         = true;
     if (spin) spin.style.display   = 'block';
     if (txt)  txt.textContent      = 'Opening WhatsApp…';
+});
+
+/* Clear return time error styling on user correction */
+document.getElementById('tbfReturnTime').addEventListener('input', function () {
+    this.style.borderColor = '';
+    this.style.boxShadow   = '';
+    var err = document.getElementById('tbfReturnErr');
+    if (err) err.remove();
 });
 </script>
 

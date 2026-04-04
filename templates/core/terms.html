@@ -41,7 +41,7 @@
 
 {# ─── PRELOAD HERO ───────────────────────────────────────────── #}
 {% block preload_hero %}
-<link rel="preload" as="image" href="{% static 'img/hero-car.webp' %}" fetchpriority="high">
+<link rel="preload" as="image" href="{% static 'img/logo.png' %}" fetchpriority="high">
 {% endblock %}
 
 {# ─── PAGE-LEVEL STRUCTURED DATA ─────────────────────────────── #}
@@ -56,15 +56,15 @@
     "url": "https://www.sevenstarlimo.com.au/terms-and-condition/",
     "description": "Terms and Conditions for SevenStar Limo & Chauffeur Melbourne. Covers bookings, cancellations, pricing, passenger conduct, airport transfers, liability and governing law.",
     "inLanguage": "en-AU",
-    "dateModified": "2025-01-01",
-    "datePublished": "2010-01-01",
+    "dateModified": "2026-04-04",
+    "datePublished": "2026-03-03",
     "isPartOf": { "@id": "https://www.sevenstarlimo.com.au/" },
     "about": {
         "@type": ["LocalBusiness", "TaxiService"],
-        "@id": "https://www.sevenstarlimo.com.au/#business",
-        "name": "SevenStar Limo & Chauffeur",
-        "telephone": "{% if contact %}{{ contact.phone }}{% else %}+61-3-XXXX-XXXX{% endif %}",
-        "email": "{% if contact %}{{ contact.email }}{% else %}bookings@sevenstarlimo.com.au{% endif %}",
+        "@id": "https://www.sevenstarlimo.com.au/",
+        "name": "SevenStar Limo Pyt. Ltd.",
+        "telephone": "{% if contact %}{{ contact.phone }}{% else %}+61483841489{% endif %}",
+        "email": "{% if contact %}{{ contact.email }}{% else %}info@sevenstarlimo.com.au{% endif %}",
         "address": {
             "@type": "PostalAddress",
             "addressLocality": "{% if contact %}{{ contact.location }}{% else %}Melbourne{% endif %}",

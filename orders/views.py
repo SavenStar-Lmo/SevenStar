@@ -1,4 +1,5 @@
 import json
+import math
 import time
 import datetime
 import logging
@@ -21,7 +22,7 @@ from .models import Discount, Order, Rates
 logger = logging.getLogger(__name__)
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Service type configuration  (structure is static, prices come from DB)
+# Service type configuration
 # ─────────────────────────────────────────────────────────────────────────────
 
 MELBOURNE_AIRPORT = "Melbourne Airport"
@@ -69,7 +70,6 @@ SERVICE_TYPES = {
     },
 }
 
-# Service types that do NOT have a meaningful destination to show the customer
 _FLAT_SERVICE_TYPES = {"oh", "th"}
 
 
@@ -78,16 +78,11 @@ _FLAT_SERVICE_TYPES = {"oh", "th"}
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _send_notifications_async(order):
-    """
-    Fire both the admin notification and the customer confirmation email
-    in a single background thread so neither blocks the HTTP response.
-    """
     def _send():
         reference        = str(order.id).zfill(6)
         show_destination = order.service_type not in _FLAT_SERVICE_TYPES
         svc_label        = SERVICE_TYPES.get(order.service_type, {}).get("label", order.service_type.upper())
 
-        # ── shared style tokens ───────────────────────────────────────────
         BG      = "#111111"
         SURFACE = "#1a1a1a"
         GOLD    = "#b8902e"
@@ -201,26 +196,18 @@ def _send_notifications_async(order):
             customer_html = (
                 f"<div style='font-family:Georgia,serif;max-width:600px;margin:auto;"
                 f"background:{BG};color:{TEXT};padding:32px;border-radius:8px;'>"
-
-                # header
                 f"<div style='text-align:center;margin-bottom:28px;'>"
                 f"<h1 style='color:{GOLD};font-size:24px;margin:0;letter-spacing:1px;'>"
                 f"SevenStar Limo &amp; Chauffeur</h1>"
                 f"<p style='color:{MUTED};margin:6px 0 0;font-size:13px;"
                 f"letter-spacing:2px;text-transform:uppercase;'>Booking Confirmed</p>"
                 f"</div>"
-
-                # greeting
                 f"<p style='color:{TEXT};font-size:15px;margin:0 0 20px;'>"
                 f"Dear {order.passenger_name},<br><br>"
                 f"Thank you for choosing SevenStar. Your booking has been confirmed and "
                 f"payment received. Please find your booking details below."
                 f"</p>"
-
-                # details table
                 + _table(*customer_rows)
-
-                # reference callout
                 + f"<div style='margin-top:24px;padding:16px;background:{SURFACE};"
                 f"border-left:3px solid {GOLD};border-radius:4px;'>"
                 f"<p style='margin:0;color:{MUTED};font-size:13px;line-height:1.6;'>"
@@ -228,8 +215,6 @@ def _send_notifications_async(order):
                 f"<strong style='color:{GOLD};'>#{reference}</strong> for any enquiries. "
                 f"Our driver will contact you prior to your pickup time."
                 f"</p></div>"
-
-                # footer
                 + f"<p style='text-align:center;color:#555;font-size:12px;margin-top:28px;'>"
                 f"SevenStar Limo &amp; Chauffeur Melbourne<br>"
                 f"This is an automated confirmation — please do not reply to this email."
@@ -266,40 +251,31 @@ def _send_notifications_async(order):
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _get_rates():
-    """
-    Fetch all Rates rows from DB ordered cheapest → most expensive.
-    Returns a list of plain dicts so views/templates don't touch ORM objects.
-    Falls back to hardcoded defaults if the table is empty.
-    """
     qs = Rates.objects.all().order_by("base_price")
     if qs.exists():
         return [
             {
-                "name":           r.name,
-                "img_url":        r.img_url or "",
-                "max_passengers": r.max_passangers,
-                "max_bags":       r.max_bags,
-                "base_price":     float(r.base_price),
-                "per_km":         float(r.per_km_rate),
-                "stop":           float(r.stop),
-                "th_rate":        float(r.th_rate),
-                "oh_rate":        float(r.oh_rate),
+                "name":                     r.name,
+                "img_url":                  r.img_url or "",
+                "max_passengers":           r.max_passangers,
+                "max_bags":                 r.max_bags,
+                "base_price":               float(r.base_price),
+                "per_km":                   float(r.per_km_rate),
+                "stop":                     float(r.stop),
+                "th_rate":                  float(r.th_rate),
+                "oh_rate":                  float(r.oh_rate),
+                "remote_pickup_multiplier": float(r.remote_pickup_multiplier),
             }
             for r in qs
         ]
-    # Fallback so the site never breaks on an empty DB
     return [
-        {"name": "Sedan 1-5",    "max_passengers": 5,  "max_bags": 5,  "base_price": 30.00,  "per_km": 3.50, "stop": 15.00, "th_rate": 200.00, "oh_rate": 100.00},
-        {"name": "SUV 1-7",      "max_passengers": 7,  "max_bags": 7,  "base_price": 55.00,  "per_km": 5.50, "stop": 25.00, "th_rate": 250.00, "oh_rate": 125.00},
-        {"name": "Stretch 1-13", "max_passengers": 13, "max_bags": 13, "base_price": 135.00, "per_km": 9.50, "stop": 65.00, "th_rate": 300.00, "oh_rate": 150.00},
+        {"name": "Sedan 1-5",    "max_passengers": 5,  "max_bags": 5,  "base_price": 30.00,  "per_km": 3.50, "stop": 15.00, "th_rate": 200.00, "oh_rate": 100.00, "remote_pickup_multiplier": 1.0},
+        {"name": "SUV 1-7",      "max_passengers": 7,  "max_bags": 7,  "base_price": 55.00,  "per_km": 5.50, "stop": 25.00, "th_rate": 250.00, "oh_rate": 125.00, "remote_pickup_multiplier": 1.0},
+        {"name": "Stretch 1-13", "max_passengers": 13, "max_bags": 13, "base_price": 135.00, "per_km": 9.50, "stop": 65.00, "th_rate": 300.00, "oh_rate": 150.00, "remote_pickup_multiplier": 1.0},
     ]
 
 
 def _get_discounts():
-    """
-    Returns (th_discount, return_discount) as floats.
-    Uses Discount.objects.first() as instructed; falls back to defaults.
-    """
     disc = Discount.objects.first()
     if disc:
         return float(disc.th_discount), float(disc.return_discount)
@@ -307,7 +283,6 @@ def _get_discounts():
 
 
 def _find_rate(rates, vehicle_name):
-    """Find a rate dict by vehicle name; fall back to cheapest if not found."""
     for r in rates:
         if r["name"] == vehicle_name:
             return r
@@ -315,16 +290,11 @@ def _find_rate(rates, vehicle_name):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Helper 1 – Distance (Google Maps — active)
+# Helper 1 – Distance (Google Maps Directions API)
 # ─────────────────────────────────────────────────────────────────────────────
 
 def calculate_distance(pickup: str, destination: str, extra_stop: str | None) -> dict:
-    """
-    Uses Google Maps Directions API to calculate driving distance.
-    Returns distance_km and has_tolls.
-    """
     gmaps = googlemaps.Client(key=settings.GOOGLE_MAPS_API_KEY)
-
     waypoints = [extra_stop] if extra_stop else None
 
     directions = gmaps.directions(
@@ -354,14 +324,57 @@ def calculate_distance(pickup: str, destination: str, extra_stop: str | None) ->
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Helper 1 (alt) – Distance via Mapbox (commented out / backup)
+# Helper 2 – Remote pickup detection (Google Maps Geocoding API)
 # ─────────────────────────────────────────────────────────────────────────────
 
+# Melbourne CBD centroid
+_MELB_CBD_LAT   = -37.8136
+_MELB_CBD_LNG   = 144.9631
+_REMOTE_RADIUS_KM = 10.0
 
+
+def _is_remote_pickup(pickup_address: str) -> bool:
+    """
+    Returns True if the pickup geocodes to more than _REMOTE_RADIUS_KM
+    from Melbourne CBD. Uses Google Maps Geocoding API.
+    Fails silently (returns False) so a geocoding error never blocks checkout.
+    Requires: Geocoding API enabled in Google Cloud Console.
+    """
+    try:
+        gmaps   = googlemaps.Client(key=settings.GOOGLE_MAPS_API_KEY)
+        results = gmaps.geocode(pickup_address)
+        if not results:
+            return False
+
+        loc = results[0]["geometry"]["location"]
+        lat, lng = loc["lat"], loc["lng"]
+
+        # Haversine formula
+        R    = 6371.0
+        dlat = math.radians(lat - _MELB_CBD_LAT)
+        dlng = math.radians(lng - _MELB_CBD_LNG)
+        a    = (
+            math.sin(dlat / 2) ** 2
+            + math.cos(math.radians(_MELB_CBD_LAT))
+            * math.cos(math.radians(lat))
+            * math.sin(dlng / 2) ** 2
+        )
+        distance_km = R * 2 * math.asin(math.sqrt(a))
+
+        logger.debug(
+            "Remote pickup check: '%s' → %.2f km from CBD (threshold %.1f km) → %s",
+            pickup_address, distance_km, _REMOTE_RADIUS_KM,
+            "REMOTE" if distance_km > _REMOTE_RADIUS_KM else "local",
+        )
+        return distance_km > _REMOTE_RADIUS_KM
+
+    except Exception as exc:
+        logger.warning("Remote pickup check failed for '%s': %s", pickup_address, exc)
+        return False
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Helper 2 – Pricing  (fully DB-driven)
+# Helper 3 – Pricing (fully DB-driven)
 # ─────────────────────────────────────────────────────────────────────────────
 
 def calculate_price(
@@ -373,6 +386,7 @@ def calculate_price(
     has_baby_seat:    bool,
     is_return_ride:   bool,
     pickup_time=None,
+    pickup_address:   str = "",
 ) -> dict:
 
     rates                     = _get_rates()
@@ -380,13 +394,22 @@ def calculate_price(
     conf                      = _find_rate(rates, vehicle)
     baby_cost                 = 20.00 if has_baby_seat else 0.00
 
-    # ── Load night surcharge rate from Discount model ─────────────────────────
     disc = Discount.objects.first()
     night_surcharge_rate = float(disc.extra_charge_for_down_hours) if disc else 0.30
 
-    # ── Surcharge helpers ─────────────────────────────────────────────────────
+    # ── Remote pickup multiplier ──────────────────────────────────────────────
+    # Only applies to per-km services (not flat-rate hourly hires).
+    # Skipped entirely if multiplier is 1.000 (admin left it at default).
+    remote_mult = 1.0
+    is_remote   = False
+    if pickup_address and service_type_key not in ("th", "oh"):
+        raw_mult = conf.get("remote_pickup_multiplier", 1.0)
+        if raw_mult != 1.0:
+            is_remote   = _is_remote_pickup(pickup_address)
+            remote_mult = raw_mult if is_remote else 1.0
+
+    # ── Night surcharge ───────────────────────────────────────────────────────
     def _night_multiplier() -> float:
-        """Returns 1 + surcharge rate if pickup is between midnight and 9am, else 1."""
         if pickup_time is None:
             return 1.0
         try:
@@ -400,50 +423,54 @@ def calculate_price(
     def _apply_stripe(amount: float) -> float:
         return round(amount * 1.03, 2)
 
-    multiplier = _night_multiplier()
+    night_mult = _night_multiplier()
 
     # ── th: 2 Hour Hire ───────────────────────────────────────────────────────
     if service_type_key == "th":
         base     = conf["th_rate"]
-        subtotal = round((base + baby_cost) * multiplier, 2)
+        subtotal = round((base + baby_cost) * night_mult, 2)
         discount = round(subtotal * th_discount, 2)
         total    = _apply_stripe(round(subtotal - discount, 2))
 
         return {
-            "service_type_key":       "th",
-            "base":                   base,
-            "distance_km":            0,
-            "distance_cost":          0,
-            "stop_cost":              0,
-            "toll_cost":              0,
-            "baby_cost":              baby_cost,
-            "subtotal_before_return": subtotal,
-            "return_multiplier":      False,
-            "return_discount":        discount,
-            "discount_label":         f"{round(th_discount * 100, 2)}% hire discount",
-            "final_price":            total,
-            "final_price_cents":      int(total * 100),
+            "service_type_key":         "th",
+            "base":                     base,
+            "distance_km":              0,
+            "distance_cost":            0,
+            "stop_cost":                0,
+            "toll_cost":                0,
+            "baby_cost":                baby_cost,
+            "subtotal_before_return":   subtotal,
+            "return_multiplier":        False,
+            "return_discount":          discount,
+            "discount_label":           f"{round(th_discount * 100, 2)}% hire discount",
+            "final_price":              total,
+            "final_price_cents":        int(total * 100),
+            "is_remote_pickup":         False,
+            "remote_pickup_multiplier": 1.0,
         }
 
     # ── oh: 1 Hour / As Directed ──────────────────────────────────────────────
     if service_type_key == "oh":
         base  = conf["oh_rate"]
-        total = _apply_stripe(round((base + baby_cost) * multiplier, 2))
+        total = _apply_stripe(round((base + baby_cost) * night_mult, 2))
 
         return {
-            "service_type_key":       "oh",
-            "base":                   base,
-            "distance_km":            0,
-            "distance_cost":          0,
-            "stop_cost":              0,
-            "toll_cost":              0,
-            "baby_cost":              baby_cost,
-            "subtotal_before_return": total,
-            "return_multiplier":      False,
-            "return_discount":        0,
-            "discount_label":         "",
-            "final_price":            total,
-            "final_price_cents":      int(total * 100),
+            "service_type_key":         "oh",
+            "base":                     base,
+            "distance_km":              0,
+            "distance_cost":            0,
+            "stop_cost":                0,
+            "toll_cost":                0,
+            "baby_cost":                baby_cost,
+            "subtotal_before_return":   total,
+            "return_multiplier":        False,
+            "return_discount":          0,
+            "discount_label":           "",
+            "final_price":              total,
+            "final_price_cents":        int(total * 100),
+            "is_remote_pickup":         False,
+            "remote_pickup_multiplier": 1.0,
         }
 
     # ── Per-km services (ptp / fair / tair) ───────────────────────────────────
@@ -457,31 +484,33 @@ def calculate_price(
     if is_return_ride:
         return_total    = round(subtotal * 2, 2)
         discount_amount = round(return_total * ret_discount, 2)
-        pre_stripe      = round((return_total - discount_amount) * multiplier, 2)
+        pre_stripe      = round((return_total - discount_amount) * night_mult * remote_mult, 2)
         final_price     = _apply_stripe(pre_stripe)
         discount_label  = f"{round(ret_discount * 100, 2)}% return discount"
     else:
         discount_amount = 0.00
-        final_price     = _apply_stripe(round(subtotal * multiplier, 2))
+        final_price     = _apply_stripe(round(subtotal * night_mult * remote_mult, 2))
         discount_label  = ""
-        
-    if service_type_key in ["ptp", "fair", "tair"] and distance_km < 50:
+
+    if service_type_key in ["ptp", "fair", "tair"] and distance_km < 80 and final_price < 100.00:
         final_price = 100.00
 
     return {
-        "service_type_key":       service_type_key,
-        "base":                   base,
-        "distance_km":            distance_km,
-        "distance_cost":          distance_cost,
-        "stop_cost":              stop_cost,
-        "toll_cost":              toll_cost,
-        "baby_cost":              baby_cost,
-        "subtotal_before_return": subtotal,
-        "return_multiplier":      is_return_ride,
-        "return_discount":        discount_amount,
-        "discount_label":         discount_label,
-        "final_price":            final_price,
-        "final_price_cents":      int(final_price * 100),
+        "service_type_key":         service_type_key,
+        "base":                     base,
+        "distance_km":              distance_km,
+        "distance_cost":            distance_cost,
+        "stop_cost":                stop_cost,
+        "toll_cost":                toll_cost,
+        "baby_cost":                baby_cost,
+        "subtotal_before_return":   subtotal,
+        "return_multiplier":        is_return_ride,
+        "return_discount":          discount_amount,
+        "discount_label":           discount_label,
+        "final_price":              final_price,
+        "final_price_cents":        int(final_price * 100),
+        "is_remote_pickup":         is_remote,
+        "remote_pickup_multiplier": remote_mult,
     }
 
 
@@ -510,11 +539,11 @@ def orders(request):
         if type_key in ("th", "oh"):
             destination = f"{svc['label']} — Open Route"
 
-        extra_stop     = request.POST.get("additional_stop", "").strip() or None
-        vehicle        = request.POST.get("limo_service_type", rates[0]["name"])
-        has_baby_seat  = "baby_seat"   in request.POST
-        is_return_ride = "return_ride" in request.POST and type_key not in ("th", "oh")
-        flight_number  = request.POST.get("flight_number", "") if svc["show_flight"] else ""
+        extra_stop      = request.POST.get("additional_stop", "").strip() or None
+        vehicle         = request.POST.get("limo_service_type", rates[0]["name"])
+        has_baby_seat   = "baby_seat"   in request.POST
+        is_return_ride  = "return_ride" in request.POST and type_key not in ("th", "oh")
+        flight_number   = request.POST.get("flight_number", "") if svc["show_flight"] else ""
         pickup_time_raw = request.POST.get("pickup_time", "").strip() or None
 
         form_data = {
@@ -571,6 +600,7 @@ def orders(request):
                     has_baby_seat=has_baby_seat,
                     is_return_ride=is_return_ride,
                     pickup_time=pickup_time_raw,
+                    pickup_address=pickup,
                 )
 
                 request.session["pending_price"]     = breakdown["final_price"]
@@ -764,9 +794,9 @@ def stripe_webhook(request):
     return HttpResponse(status=200)
 
 
-
-
-
+# ─────────────────────────────────────────────────────────────────────────────
+# Finance dashboard
+# ─────────────────────────────────────────────────────────────────────────────
 
 TAB_CHOICES = [
     ("today",      "Today"),
@@ -781,7 +811,6 @@ TAB_CHOICES = [
     ("custom",     "Custom"),
 ]
 
-# Tabs that get a visual left-separator (start of a logical group)
 TAB_SEPARATORS = {"this_week", "this_month", "this_year", "lifetime", "custom"}
 
 
@@ -790,19 +819,15 @@ def _date_range_for_tab(tab, from_date=None, to_date=None):
 
     if tab == "today":
         return today, today
-
     elif tab == "yesterday":
         d = today - datetime.timedelta(days=1)
         return d, d
-
     elif tab == "this_week":
         mon = today - datetime.timedelta(days=today.weekday())
         return mon, mon + datetime.timedelta(days=6)
-
     elif tab == "prev_week":
         mon = today - datetime.timedelta(days=today.weekday() + 7)
         return mon, mon + datetime.timedelta(days=6)
-
     elif tab == "this_month":
         first = today.replace(day=1)
         if first.month == 12:
@@ -810,22 +835,17 @@ def _date_range_for_tab(tab, from_date=None, to_date=None):
         else:
             last = first.replace(month=first.month + 1, day=1) - datetime.timedelta(days=1)
         return first, last
-
     elif tab == "prev_month":
         first_this = today.replace(day=1)
         last_prev  = first_this - datetime.timedelta(days=1)
         return last_prev.replace(day=1), last_prev
-
     elif tab == "this_year":
         return today.replace(month=1, day=1), today.replace(month=12, day=31)
-
     elif tab == "prev_year":
         y = today.year - 1
         return datetime.date(y, 1, 1), datetime.date(y, 12, 31)
-
     elif tab == "custom":
-        return from_date, to_date  # already parsed by caller
-
+        return from_date, to_date
     else:  # lifetime
         return None, None
 
@@ -893,7 +913,6 @@ def _build_context(request, tab, from_date, to_date, custom_from="", custom_to="
 
     total_profit = total_earnings - total_cost
 
-    # Build tab list with separator flag
     tabs = [
         {
             "key":       key,
@@ -920,7 +939,6 @@ def _build_context(request, tab, from_date, to_date, custom_from="", custom_to="
 
 @staff_member_required
 def finances_view(request):
-    """GET — initial load, defaults to This Week."""
     today = datetime.date.today()
     mon   = today - datetime.timedelta(days=today.weekday())
     sun   = mon + datetime.timedelta(days=6)
@@ -931,7 +949,6 @@ def finances_view(request):
 @staff_member_required
 @require_POST
 def finances_data(request):
-    """POST — re-render with the chosen tab's data."""
     tab         = request.POST.get("tab", "this_week")
     custom_from = request.POST.get("custom_from", "").strip()
     custom_to   = request.POST.get("custom_to",   "").strip()
@@ -942,7 +959,7 @@ def finances_data(request):
             from_date = datetime.date.fromisoformat(custom_from)
             to_date   = datetime.date.fromisoformat(custom_to)
             if from_date > to_date:
-                from_date, to_date = to_date, from_date  # swap if reversed
+                from_date, to_date = to_date, from_date
         except (ValueError, TypeError):
             tab = "this_week"
 
