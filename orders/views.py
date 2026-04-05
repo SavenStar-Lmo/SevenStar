@@ -37,15 +37,7 @@ SERVICE_TYPES = {
         "flat": False,
     },
     "oh": {
-        "label": "1 Hour / As Directed",
-        "show_destination": False,
-        "show_flight": False,
-        "lock_pickup": None,
-        "lock_destination": None,
-        "flat": True,
-    },
-    "th": {
-        "label": "2 Hour Hire",
+        "label": "Hourly / As Directed",
         "show_destination": False,
         "show_flight": False,
         "lock_pickup": None,
@@ -70,7 +62,9 @@ SERVICE_TYPES = {
     },
 }
 
-_FLAT_SERVICE_TYPES = {"oh", "th"}
+# oh is WhatsApp-routed — no Stripe, no price calculation
+_WHATSAPP_SERVICE_TYPES = {"oh"}
+_WHATSAPP_NUMBER = "61483841489"  # +61 483 841 489 in international format
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -80,7 +74,7 @@ _FLAT_SERVICE_TYPES = {"oh", "th"}
 def _send_notifications_async(order):
     def _send():
         reference        = str(order.id).zfill(6)
-        show_destination = order.service_type not in _FLAT_SERVICE_TYPES
+        show_destination = order.service_type not in _WHATSAPP_SERVICE_TYPES
         svc_label        = SERVICE_TYPES.get(order.service_type, {}).get("label", order.service_type.upper())
 
         BG      = "#111111"
@@ -132,13 +126,16 @@ def _send_notifications_async(order):
                 _row("Pickup Time", str(order.pickup_time)),
                 _row("Vehicle",     order.limo_service_type),
             ]
+            if order.hourly_hours:
+                admin_rows.append(_row("Hours Requested", f"{order.hourly_hours} hour(s)"))
             if order.additional_stop:
                 admin_rows.append(_row("Additional Stop", order.additional_stop))
             if order.flight_number:
                 admin_rows.append(_row("Flight Number", order.flight_number))
             if order.special_instruction:
                 admin_rows.append(_row("Special Instructions", order.special_instruction))
-            admin_rows.append(_row("Amount Paid", f"A${order.total_price}", highlight=True))
+            if order.total_price is not None:
+                admin_rows.append(_row("Amount Paid", f"A${order.total_price}", highlight=True))
 
             admin_html = (
                 f"<div style='font-family:Georgia,serif;max-width:600px;margin:auto;"
@@ -156,7 +153,7 @@ def _send_notifications_async(order):
             try:
                 send_mail(
                     subject=f"New Booking #{reference} — {order.passenger_name}",
-                    message=f"New booking #{reference} from {order.passenger_name}. Amount: A${order.total_price}.",
+                    message=f"New booking #{reference} from {order.passenger_name}.",
                     from_email=settings.SERVER_EMAIL,
                     recipient_list=[admin_email],
                     html_message=admin_html,
@@ -181,17 +178,16 @@ def _send_notifications_async(order):
                 _row("Time",    str(order.pickup_time)),
                 _row("Vehicle", order.limo_service_type),
             ]
+            if order.hourly_hours:
+                customer_rows.append(_row("Hours", f"{order.hourly_hours} hour(s)"))
             if order.flight_number:
                 customer_rows.append(_row("Flight Number", order.flight_number))
             if order.additional_stop:
                 customer_rows.append(_row("Additional Stop", order.additional_stop))
             if order.special_instruction:
                 customer_rows.append(_row("Special Instructions", order.special_instruction))
-            customer_rows.append(_row("Amount Paid", f"A${order.total_price}", highlight=True))
-
-            plain_destination = (
-                f"Destination: {order.destination_address}\n" if show_destination else ""
-            )
+            if order.total_price is not None:
+                customer_rows.append(_row("Amount Paid", f"A${order.total_price}", highlight=True))
 
             customer_html = (
                 f"<div style='font-family:Georgia,serif;max-width:600px;margin:auto;"
@@ -200,20 +196,20 @@ def _send_notifications_async(order):
                 f"<h1 style='color:{GOLD};font-size:24px;margin:0;letter-spacing:1px;'>"
                 f"SevenStar Limo &amp; Chauffeur</h1>"
                 f"<p style='color:{MUTED};margin:6px 0 0;font-size:13px;"
-                f"letter-spacing:2px;text-transform:uppercase;'>Booking Confirmed</p>"
+                f"letter-spacing:2px;text-transform:uppercase;'>Booking Enquiry Received</p>"
                 f"</div>"
                 f"<p style='color:{TEXT};font-size:15px;margin:0 0 20px;'>"
                 f"Dear {order.passenger_name},<br><br>"
-                f"Thank you for choosing SevenStar. Your booking has been confirmed and "
-                f"payment received. Please find your booking details below."
+                f"Thank you for choosing SevenStar. We have received your hourly hire enquiry "
+                f"and our team will be in touch via WhatsApp shortly to confirm pricing and details."
                 f"</p>"
                 + _table(*customer_rows)
                 + f"<div style='margin-top:24px;padding:16px;background:{SURFACE};"
                 f"border-left:3px solid {GOLD};border-radius:4px;'>"
                 f"<p style='margin:0;color:{MUTED};font-size:13px;line-height:1.6;'>"
-                f"Please save your reference number "
-                f"<strong style='color:{GOLD};'>#{reference}</strong> for any enquiries. "
-                f"Our driver will contact you prior to your pickup time."
+                f"Save your reference number "
+                f"<strong style='color:{GOLD};'>#{reference}</strong>. "
+                f"Our team will contact you on WhatsApp to confirm your booking."
                 f"</p></div>"
                 + f"<p style='text-align:center;color:#555;font-size:12px;margin-top:28px;'>"
                 f"SevenStar Limo &amp; Chauffeur Melbourne<br>"
@@ -223,16 +219,12 @@ def _send_notifications_async(order):
 
             try:
                 send_mail(
-                    subject=f"Booking Confirmed — Reference #{reference}",
+                    subject=f"Hourly Hire Enquiry Received — Reference #{reference}",
                     message=(
                         f"Dear {order.passenger_name},\n\n"
-                        f"Your booking has been confirmed.\n"
+                        f"We've received your hourly hire enquiry.\n"
                         f"Reference: #{reference}\n"
-                        f"Service: {svc_label}\n"
-                        f"Pickup: {order.pickup_address}\n"
-                        + plain_destination
-                        + f"Date: {order.pickup_date}\n"
-                        f"Amount Paid: A${order.total_price}\n\n"
+                        f"Our team will contact you via WhatsApp to confirm details.\n\n"
                         f"Thank you for choosing SevenStar Limo & Chauffeur."
                     ),
                     from_email=settings.SERVER_EMAIL,
@@ -262,16 +254,15 @@ def _get_rates():
                 "base_price":               float(r.base_price),
                 "per_km":                   float(r.per_km_rate),
                 "stop":                     float(r.stop),
-                "th_rate":                  float(r.th_rate),
                 "oh_rate":                  float(r.oh_rate),
                 "remote_pickup_multiplier": float(r.remote_pickup_multiplier),
             }
             for r in qs
         ]
     return [
-        {"name": "Sedan 1-5",    "max_passengers": 5,  "max_bags": 5,  "base_price": 30.00,  "per_km": 3.50, "stop": 15.00, "th_rate": 200.00, "oh_rate": 100.00, "remote_pickup_multiplier": 1.0},
-        {"name": "SUV 1-7",      "max_passengers": 7,  "max_bags": 7,  "base_price": 55.00,  "per_km": 5.50, "stop": 25.00, "th_rate": 250.00, "oh_rate": 125.00, "remote_pickup_multiplier": 1.0},
-        {"name": "Stretch 1-13", "max_passengers": 13, "max_bags": 13, "base_price": 135.00, "per_km": 9.50, "stop": 65.00, "th_rate": 300.00, "oh_rate": 150.00, "remote_pickup_multiplier": 1.0},
+        {"name": "Sedan 1-5",    "max_passengers": 5,  "max_bags": 5,  "base_price": 30.00,  "per_km": 3.50, "stop": 15.00, "oh_rate": 100.00, "remote_pickup_multiplier": 1.0},
+        {"name": "SUV 1-7",      "max_passengers": 7,  "max_bags": 7,  "base_price": 55.00,  "per_km": 5.50, "stop": 25.00, "oh_rate": 125.00, "remote_pickup_multiplier": 1.0},
+        {"name": "Stretch 1-13", "max_passengers": 13, "max_bags": 13, "base_price": 135.00, "per_km": 9.50, "stop": 65.00, "oh_rate": 150.00, "remote_pickup_multiplier": 1.0},
     ]
 
 
@@ -334,12 +325,6 @@ _REMOTE_RADIUS_KM = 10.0
 
 
 def _is_remote_pickup(pickup_address: str) -> bool:
-    """
-    Returns True if the pickup geocodes to more than _REMOTE_RADIUS_KM
-    from Melbourne CBD. Uses Google Maps Geocoding API.
-    Fails silently (returns False) so a geocoding error never blocks checkout.
-    Requires: Geocoding API enabled in Google Cloud Console.
-    """
     try:
         gmaps   = googlemaps.Client(key=settings.GOOGLE_MAPS_API_KEY)
         results = gmaps.geocode(pickup_address)
@@ -349,7 +334,6 @@ def _is_remote_pickup(pickup_address: str) -> bool:
         loc = results[0]["geometry"]["location"]
         lat, lng = loc["lat"], loc["lng"]
 
-        # Haversine formula
         R    = 6371.0
         dlat = math.radians(lat - _MELB_CBD_LAT)
         dlng = math.radians(lng - _MELB_CBD_LNG)
@@ -374,7 +358,7 @@ def _is_remote_pickup(pickup_address: str) -> bool:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Helper 3 – Pricing (fully DB-driven)
+# Helper 3 – Pricing (fully DB-driven, per-km services only)
 # ─────────────────────────────────────────────────────────────────────────────
 
 def calculate_price(
@@ -398,11 +382,9 @@ def calculate_price(
     night_surcharge_rate = float(disc.extra_charge_for_down_hours) if disc else 0.30
 
     # ── Remote pickup multiplier ──────────────────────────────────────────────
-    # Only applies to per-km services (not flat-rate hourly hires).
-    # Skipped entirely if multiplier is 1.000 (admin left it at default).
     remote_mult = 1.0
     is_remote   = False
-    if pickup_address and service_type_key not in ("th", "oh"):
+    if pickup_address and service_type_key not in ("oh",):
         raw_mult = conf.get("remote_pickup_multiplier", 1.0)
         if raw_mult != 1.0:
             is_remote   = _is_remote_pickup(pickup_address)
@@ -424,54 +406,6 @@ def calculate_price(
         return round(amount * 1.03, 2)
 
     night_mult = _night_multiplier()
-
-    # ── th: 2 Hour Hire ───────────────────────────────────────────────────────
-    if service_type_key == "th":
-        base     = conf["th_rate"]
-        subtotal = round((base + baby_cost) * night_mult, 2)
-        discount = round(subtotal * th_discount, 2)
-        total    = _apply_stripe(round(subtotal - discount, 2))
-
-        return {
-            "service_type_key":         "th",
-            "base":                     base,
-            "distance_km":              0,
-            "distance_cost":            0,
-            "stop_cost":                0,
-            "toll_cost":                0,
-            "baby_cost":                baby_cost,
-            "subtotal_before_return":   subtotal,
-            "return_multiplier":        False,
-            "return_discount":          discount,
-            "discount_label":           f"{round(th_discount * 100, 2)}% hire discount",
-            "final_price":              total,
-            "final_price_cents":        int(total * 100),
-            "is_remote_pickup":         False,
-            "remote_pickup_multiplier": 1.0,
-        }
-
-    # ── oh: 1 Hour / As Directed ──────────────────────────────────────────────
-    if service_type_key == "oh":
-        base  = conf["oh_rate"]
-        total = _apply_stripe(round((base + baby_cost) * night_mult, 2))
-
-        return {
-            "service_type_key":         "oh",
-            "base":                     base,
-            "distance_km":              0,
-            "distance_cost":            0,
-            "stop_cost":                0,
-            "toll_cost":                0,
-            "baby_cost":                baby_cost,
-            "subtotal_before_return":   total,
-            "return_multiplier":        False,
-            "return_discount":          0,
-            "discount_label":           "",
-            "final_price":              total,
-            "final_price_cents":        int(total * 100),
-            "is_remote_pickup":         False,
-            "remote_pickup_multiplier": 1.0,
-        }
 
     # ── Per-km services (ptp / fair / tair) ───────────────────────────────────
     base          = conf["base_price"]
@@ -515,6 +449,39 @@ def calculate_price(
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# WhatsApp redirect builder (for hourly bookings)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _build_whatsapp_url(order, hours: str) -> str:
+    """Build a pre-filled WhatsApp message URL for hourly bookings."""
+    reference = str(order.id).zfill(6)
+    lines = [
+        f"*New Hourly Hire Enquiry — #{reference}*",
+        f"",
+        f"*Name:* {order.passenger_name}",
+        f"*Phone:* {order.passenger_number}",
+        f"*Email:* {order.passenger_email}",
+        f"",
+        f"*Pickup:* {order.pickup_address}",
+        f"*Date:* {order.pickup_date}",
+        f"*Time:* {order.pickup_time}",
+        f"*Hours Requested:* {hours}",
+        f"*Vehicle:* {order.limo_service_type}",
+        f"*Passengers:* {order.number_of_passengers}",
+        f"*Bags:* {order.number_of_bags}",
+    ]
+    if order.baby_seat:
+        lines.append(f"*Baby Seat:* Yes")
+    if order.special_instruction:
+        lines.append(f"*Instructions:* {order.special_instruction}")
+
+    message = "\n".join(lines)
+    import urllib.parse
+    encoded = urllib.parse.quote(message)
+    return f"https://wa.me/{_WHATSAPP_NUMBER}?text={encoded}"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Booking view
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -530,21 +497,24 @@ def orders(request):
     svc      = SERVICE_TYPES[type_key]
     rates    = _get_rates()
 
+    is_hourly = type_key in _WHATSAPP_SERVICE_TYPES
+
     # ── POST ─────────────────────────────────────────────────────────────
     if request.method == "POST":
         action = request.POST.get("action", "calculate")
 
         pickup      = svc["lock_pickup"]      or request.POST.get("pickup_address", "").strip()
         destination = svc["lock_destination"] or request.POST.get("destination_address", "").strip()
-        if type_key in ("th", "oh"):
+        if is_hourly:
             destination = f"{svc['label']} — Open Route"
 
         extra_stop      = request.POST.get("additional_stop", "").strip() or None
         vehicle         = request.POST.get("limo_service_type", rates[0]["name"])
         has_baby_seat   = "baby_seat"   in request.POST
-        is_return_ride  = "return_ride" in request.POST and type_key not in ("th", "oh")
+        is_return_ride  = "return_ride" in request.POST and not is_hourly
         flight_number   = request.POST.get("flight_number", "") if svc["show_flight"] else ""
         pickup_time_raw = request.POST.get("pickup_time", "").strip() or None
+        hourly_hours    = request.POST.get("hourly_hours", "").strip() if is_hourly else ""
 
         form_data = {
             "service_type_key":     type_key,
@@ -567,6 +537,7 @@ def orders(request):
             "vehicle_colour":       request.POST.get("vehicle_colour", ""),
             "wedding_ribbon":       request.POST.get("wedding_ribbon", ""),
             "special_signboard":    request.POST.get("special_signboard", ""),
+            "hourly_hours":         hourly_hours,
             "show_destination":     svc["show_destination"],
             "show_flight":          svc["show_flight"],
             "lock_pickup":          svc["lock_pickup"],
@@ -579,17 +550,56 @@ def orders(request):
                 "error": msg, "form_data": form_data, "svc": svc,
                 "type_key": type_key, "rates": rates,
                 "google_maps_key": settings.GOOGLE_MAPS_API_KEY,
+                "is_hourly": is_hourly,
             })
 
-        # ── Calculate ─────────────────────────────────────────────────────
+        # ── Hourly: save order then redirect to WhatsApp ──────────────────
+        if is_hourly:
+            if not pickup:
+                return form_error("Please enter your pickup address.")
+
+            try:
+                order = Order.objects.create(
+                    user=request.user,
+                    service_type=type_key,
+                    passenger_name=form_data["passenger_name"],
+                    passenger_number=form_data["passenger_number"],
+                    passenger_email=form_data["passenger_email"],
+                    number_of_passengers=form_data["number_of_passengers"],
+                    number_of_bags=form_data["number_of_bags"],
+                    pickup_address=pickup,
+                    destination_address=destination,
+                    additional_stop=extra_stop,
+                    flight_number="",
+                    pickup_date=form_data["pickup_date"],
+                    pickup_time=pickup_time_raw or datetime.time(0, 0),
+                    limo_service_type=vehicle,
+                    baby_seat=has_baby_seat,
+                    return_ride=False,
+                    special_instruction=form_data["special_instruction"],
+                    vehicle_colour=form_data["vehicle_colour"],
+                    wedding_ribbon=form_data["wedding_ribbon"],
+                    special_signboard=form_data["special_signboard"],
+                    hourly_hours=hourly_hours or None,
+                    total_price=None,  # no price — agent will quote
+                    paid=False,
+                )
+            except Exception as exc:
+                return form_error(f"Could not save your enquiry: {exc}")
+
+            # Send notification emails asynchronously
+            _send_notifications_async(order)
+
+            # Redirect to WhatsApp
+            wa_url = _build_whatsapp_url(order, hourly_hours or "Not specified")
+            return HttpResponseRedirect(wa_url)
+
+        # ── Calculate (non-hourly) ────────────────────────────────────────
         if action == "calculate":
             try:
-                if type_key in ("th", "oh"):
-                    route = {"distance_km": 0, "has_tolls": False}
-                else:
-                    if not pickup or not destination:
-                        return form_error("Please enter both pickup and destination addresses.")
-                    route = calculate_distance(pickup, destination, extra_stop)
+                if not pickup or not destination:
+                    return form_error("Please enter both pickup and destination addresses.")
+                route = calculate_distance(pickup, destination, extra_stop)
 
                 breakdown = calculate_price(
                     service_type_key=type_key,
@@ -648,6 +658,7 @@ def orders(request):
                     vehicle_colour=form_data["vehicle_colour"],
                     wedding_ribbon=form_data["wedding_ribbon"],
                     special_signboard=form_data["special_signboard"],
+                    hourly_hours=None,
                     total_price=final_price,
                     paid=False,
                 )
@@ -670,8 +681,6 @@ def orders(request):
                                 "name": f"{svc['label']} — Melbourne Chauffeur",
                                 "description": (
                                     f"{pickup} → {destination} on {form_data['pickup_date']}"
-                                    if type_key not in ("th", "oh")
-                                    else f"{svc['label']} from {pickup} on {form_data['pickup_date']}"
                                 ),
                             },
                         },
@@ -730,6 +739,7 @@ def orders(request):
         "type_key":        type_key,
         "rates":           rates,
         "google_maps_key": settings.GOOGLE_MAPS_API_KEY,
+        "is_hourly":       is_hourly,
     })
 
 

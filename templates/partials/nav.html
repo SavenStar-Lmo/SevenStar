@@ -6,7 +6,7 @@
     <div class="nav__topbar">
         <span class="nav__tagline">Melbourne's Premier Chauffeur &amp; Limo Service</span>
         <a class="nav__phone"
-           href="tel:{% if contact %}{{ contact.phone }}{% else %}+61300000000{% endif %}"
+           href="tel:{% if contact %}{{ contact.phone }}{% else %}+61483841489{% endif %}"
            aria-label="Call SevenStar Limo Melbourne{% if contact %}: {{ contact.phone }}{% endif %}"
            title="Call SevenStar Limo & Chauffeur Melbourne now">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -94,15 +94,6 @@
                             </span>
                         </a>
                     </li>
-                    <li role="none">
-                        <a href="{% url 'orders' %}?type=th" class="nav__drop-item nav__drop-item--highlight" role="menuitem">
-                            <span class="nav__drop-icon" aria-hidden="true">★</span>
-                            <span>
-                                <strong>2-Hour Package</strong>
-                                <small>Perfect for events &amp; occasions</small>
-                            </span>
-                        </a>
-                    </li>
                 </ul>
             </li>
 
@@ -154,7 +145,7 @@
 
                     {# ── Email — dynamic ── #}
                     <li role="none">
-                        <a href="mailto:{% if contact %}{{ contact.email }}{% else %}bookings@sevenstarlimo.com.au{% endif %}"
+                        <a href="mailto:{% if contact %}{{ contact.email }}{% else %}info@sevenstarlimo.com.au{% endif %}"
                            class="nav__drop-item nav__drop-item--contact-detail"
                            role="menuitem"
                            title="Email SevenStar Limo Melbourne">
@@ -343,7 +334,7 @@
 
                 <li><a href="{% url 'home' %}" class="nav__mob-link">Home</a></li>
                 <li><a href="{% url 'about' %}" class="nav__mob-link">About</a></li>
-                <li><a href="{% url 'tours' %}" class="nav__mob-link">Book Tour</a></li>
+                <li><a href="{% url 'tours' %}" class="nav__mob-link">Tours</a></li>
 
                 <!-- Mobile Booking Accordion -->
                 <li class="nav__mob-acc">
@@ -358,7 +349,6 @@
                         <li><a href="{% url 'orders' %}?type=fair"><div style="rotate: 180deg; padding:0; margin:0; display: inline-flex">✈</div>&nbsp; From Airport</a></li>
                         <li><a href="{% url 'orders' %}?type=ptp">↔&nbsp; Point to Point</a></li>
                         <li><a href="{% url 'orders' %}?type=oh">⏱&nbsp; Hourly / As Directed</a></li>
-                        <li><a href="{% url 'orders' %}?type=th">★&nbsp; 2-Hour Package</a></li>
                     </ul>
                 </li>
 
