@@ -194,7 +194,7 @@ JAZZMIN_SETTINGS = {
     'site_title': 'SevenStar Admin',
     'site_header': 'SevenStar Admin',
     "site_brand": "SevenStar", 
-    'site_logo': 'img/logo.png',
+    'site_logo': 'img/logo2.png',
     'welcome_sign': 'Manage The Web',
     #"custom_css": "admin/admin.css",  
     #"custom_js": "admin/admin.js", 
