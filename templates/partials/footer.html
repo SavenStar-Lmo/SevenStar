@@ -248,7 +248,7 @@
                          itemscope itemtype="https://schema.org/LocalBusiness">
 
                     {# ── Phone — dynamic ── #}
-                    <a href="tel:{% if contact %}{{ contact.phone }}{% else %}+61300000000{% endif %}"
+                    <a href="tel:{% if contact %}{{ contact.phone }}{% else %}+61483841489{% endif %}"
                        class="ftr__contact-row"
                        aria-label="Call SevenStar Limo Melbourne{% if contact %}: {{ contact.phone }}{% endif %}"
                        title="Call SevenStar Limo & Chauffeur Melbourne now"
@@ -278,7 +278,7 @@
                         </span>
                         <span>
                             <strong>Email</strong>
-                            {% if contact %}{{ contact.email }}{% else %}bookings@sevenstarlimo.com.au{% endif %}
+                            {% if contact %}{{ contact.email }}{% else %}info@sevenstarlimo.com.au{% endif %}
                         </span>
                     </a>
 
@@ -308,12 +308,12 @@
                         </span>
                         <span>
                             <strong>Hours</strong>
-                            {% if contact %}{{ contact.opening_hours_week }}{% else %}24 hours, 7 days a week{% endif %}
+                            24/7
                         </span>
                     </div>
 
                     {# ── Live Contact — WhatsApp, silently ── #}
-                    <a href="https://wa.me/{% if contact %}{{ contact.phone|cut:' '|cut:'+'|cut:'-' }}{% else %}61300000000{% endif %}?text=Hi%2C%20I%27d%20like%20to%20enquire%20about%20a%20SevenStar%20Limo%20booking."
+                    <a href="https://wa.me/{% if contact %}{{ contact.phone|cut:' '|cut:'+'|cut:'-' }}{% else %}+61483841489{% endif %}?text=Hi%2C%20I%27d%20like%20to%20enquire%20about%20a%20SevenStar%20Limo%20booking."
                        class="ftr__contact-row ftr__contact-row--live"
                        target="_blank" rel="noopener noreferrer"
                        aria-label="Live contact — chat with SevenStar Limo"
@@ -375,7 +375,7 @@
         <div class="ftr__bottom-inner">
 
             <p class="ftr__copy">
-                &copy; {% now "Y" %} SevenStar Limo &amp; Chauffeur Melbourne. All rights reserved.
+                &copy; {% now "Y" %} SevenStar Limo &amp; Pyt. Ltd. All rights reserved.
                 {% if contact and contact.abn %}
                     <span class="ftr__abn">ABN {{ contact.abn }}</span>
                 {% endif %}

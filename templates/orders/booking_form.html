@@ -66,10 +66,10 @@
         <p class="bf__hero-sub">Professional, punctual, premium transport across Melbourne &amp; Victoria</p>
 
         <div class="bf__badge">
-            {% if type_key == "fair" %}✈️ From Airport — Meet &amp; Greet
-            {% elif type_key == "tair" %}✈️ To Airport — Flight Tracked
-            {% elif type_key == "oh" %}🕐 Hourly / As Directed
-            {% else %}🗺️ Point to Point Transfer
+            {% if type_key == "fair" %}<div style="rotate: 150deg; padding:0; margin:0; display: inline-flex">✈</div> From Airport — Meet &amp; Greet
+            {% elif type_key == "tair" %}️<div style="rotate: 30deg; padding:0; margin:0; display: inline-flex">✈</div> To Airport — Flight Tracked
+            {% elif type_key == "oh" %}🧭 Hourly / As Directed
+            {% else %}🚕️ Point to Point Transfer
             {% endif %}
         </div>
 
