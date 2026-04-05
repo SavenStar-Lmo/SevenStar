@@ -8,8 +8,7 @@ from django.utils import timezone
 class Order(models.Model):
     SERVICE_TYPE_CHOICES = [
         ("ptp",  "Point to Point"),
-        ("oh",   "1 Hour / As Directed"),
-        ("th",   "2 Hour Hire"),
+        ("oh",   "Hourly / As Directed"),
         ("fair", "From Airport"),
         ("tair", "To Airport"),
     ]
@@ -40,6 +39,12 @@ class Order(models.Model):
     pickup_date          = models.DateField(default=datetime.date.today)
     pickup_time          = models.TimeField(default=timezone.now)
 
+    # Hourly hire — only populated for oh service type
+    hourly_hours = models.CharField(
+        max_length=20, null=True, blank=True,
+        help_text="Number of hours requested (hourly hire only)"
+    )
+
     # Vehicle
     limo_service_type   = models.CharField(max_length=50)
     baby_seat           = models.BooleanField(default=False)
@@ -49,14 +54,13 @@ class Order(models.Model):
     wedding_ribbon      = models.CharField(max_length=30, null=True, blank=True)
     special_signboard   = models.CharField(max_length=200, blank=True)
 
-    # Payment — paid=False until webhook/session confirms success
-    total_price  = models.DecimalField(max_digits=10, decimal_places=2)
+    # Payment
+    # total_price is nullable for hourly bookings — agent quotes manually via WhatsApp
+    total_price  = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     paid         = models.BooleanField(default=False)
-    # Stores stripe.checkout.Session.id (cs_...)
     stripe_payment_intent_id = models.CharField(max_length=200, blank=True)
-    # fees
-    driver_fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0)
-    
+    driver_fee   = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0)
+
     # Meta
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -72,27 +76,28 @@ class Order(models.Model):
 
 
 class Rates(models.Model):
-    name = models.CharField(default='Sedan 1-5')
-    img_url = models.URLField(null=True,blank=True)
+    name           = models.CharField(default='Sedan 1-5')
+    img_url        = models.URLField(null=True, blank=True)
     max_passangers = models.IntegerField(default=5)
-    max_bags = models.IntegerField(default=5)
-    base_price = models.DecimalField(max_digits=6,decimal_places=2,default=30)
-    per_km_rate = models.DecimalField(max_digits=6,decimal_places=2,default=3.50)
-    stop = models.DecimalField(max_digits=6,decimal_places=2,default=15)
-    th_rate = models.DecimalField(max_digits=6,decimal_places=2,default=200)
-    oh_rate = models.DecimalField(max_digits=6,decimal_places=2,default=100)
+    max_bags       = models.IntegerField(default=5)
+    base_price     = models.DecimalField(max_digits=6, decimal_places=2, default=30)
+    per_km_rate    = models.DecimalField(max_digits=6, decimal_places=2, default=3.50)
+    stop           = models.DecimalField(max_digits=6, decimal_places=2, default=15)
+    oh_rate        = models.DecimalField(max_digits=6, decimal_places=2, default=100)
     remote_pickup_multiplier = models.DecimalField(
         max_digits=15, decimal_places=10, default=1.000,
         help_text="Applied when pickup is >10 km from Melbourne CBD. "
                   "E.g. 1.25 = 25% surcharge. Leave at 1.000 for no surcharge."
     )
-    
+
     def __str__(self):
         return self.name
 
+
 class Discount(models.Model):
-    th_discount = models.DecimalField(max_digits=7,decimal_places=3,default=0.025)
-    return_discount = models.DecimalField(max_digits=7,decimal_places=3,default=0.05)
-    extra_charge_for_down_hours = models.DecimalField(max_digits=7,decimal_places=3,default=0.3)
+    th_discount                 = models.DecimalField(max_digits=7, decimal_places=3, default=0.025)
+    return_discount             = models.DecimalField(max_digits=7, decimal_places=3, default=0.05)
+    extra_charge_for_down_hours = models.DecimalField(max_digits=7, decimal_places=3, default=0.3)
+
     def __str__(self):
         return "Manage Discounts & Extra Hour charge rates"

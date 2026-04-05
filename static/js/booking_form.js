@@ -1,8 +1,7 @@
 /**
- * SevenStar Limo & Chauffeur — booking.js
+ * SevenStar Limo & Chauffeur — booking_form.js
  * Booking form interactions:
  *   - Vehicle card selection + hidden input sync
- *   - Price labels per vehicle per service type
  *   - Passenger & bag dropdowns (built from data-* on cards)
  *   - Auto-upgrade vehicle when passenger/bag count exceeds capacity
  *   - Toggle switch add-ons (baby seat, return ride)
@@ -10,17 +9,15 @@
  *   - Date min = today
  *   - Submit loading state
  *
- * Depends on: BF_TYPE, BF_RATES, bfFormData — injected by booking.html <script> block.
+ * Depends on: BF_TYPE, BF_RATES, BF_IS_HOURLY — injected by booking_form.html
  */
 
 /* ── Init ───────────────────────────────────────────────────── */
 (function bfInit() {
     'use strict';
 
-    // Bail if vehicle cards haven't rendered yet
     if (!window.BF_RATES || !BF_RATES.length) return;
 
-    // Ensure hidden vehicle input is seeded
     var vehicleInput = document.getElementById('bfVehicleInput');
     if (vehicleInput && !vehicleInput.value && BF_RATES.length) {
         vehicleInput.value = BF_RATES[0].name;
@@ -29,10 +26,8 @@
         window.bfCurrent = vehicleInput.value || BF_RATES[0].name;
     }
 
-    //bfUpdatePrices();
     bfBuildDropdowns();
 
-    // Set pickup date min to today
     var dateEl = document.getElementById('bfDate');
     if (dateEl) {
         var today = new Date().toISOString().split('T')[0];
@@ -49,19 +44,7 @@ window.bfPick = function (card) {
     var inp = document.getElementById('bfVehicleInput');
     if (inp) inp.value = window.bfCurrent;
     bfBuildDropdowns();
-    //bfUpdatePrices();
 };
-
-/* ── Price labels ───────────────────────────────────────────── */
-/* function bfUpdatePrices() {
-    BF_RATES.forEach(function (r, i) {
-        var el = document.getElementById('bfPrice' + (i + 1));
-        if (!el) return;
-        if (window.BF_TYPE === 'th')      el.textContent = '$' + r.thRate.toFixed(0) + ' flat';
-        else if (window.BF_TYPE === 'oh') el.textContent = '$' + r.ohRate.toFixed(0) + ' flat';
-        else                              el.textContent = 'From $' + r.base.toFixed(0) + ' · $' + r.perKm.toFixed(2) + '/km';
-    });
-} */
 
 /* ── Get current rate object ─────────────────────────────────── */
 function bfCurrentRate() {
@@ -136,7 +119,6 @@ function bfUpgrade(rate, msg) {
         setTimeout(function () { noteEl.classList.remove('show'); }, 4000);
     }
     bfBuildDropdowns();
-    //bfUpdatePrices();
 }
 
 /* ── Toggle switches ────────────────────────────────────────── */
@@ -217,12 +199,13 @@ function bfSetupAC(inputEl, listEl) {
     }
 }
 
-/* Called by Google Maps script callback — set on window by booking.html */
+/* Called by Google Maps script callback */
 window.bfMapsReady = function () {
     if (!window.BF_LOCK_PICKUP) {
         bfSetupAC(document.getElementById('bfPickup'), document.getElementById('bfPickupList'));
     }
-    if (window.BF_TYPE !== 'th' && window.BF_TYPE !== 'oh') {
+    // Destination & stop only for non-hourly service types
+    if (!window.BF_IS_HOURLY) {
         if (!window.BF_LOCK_DEST) {
             bfSetupAC(document.getElementById('bfDest'), document.getElementById('bfDestList'));
         }
@@ -242,6 +225,10 @@ window.bfMapsReady = function () {
         if (btn) btn.disabled = true;
         if (spinner) spinner.style.display = 'block';
         if (arrow)   arrow.style.display   = 'none';
-        if (txtEl)   txtEl.textContent     = window.BF_FLAT ? 'Getting quote…' : 'Calculating route…';
+        if (window.BF_IS_HOURLY) {
+            if (txtEl) txtEl.innerHTML = 'Opening WhatsApp\u2026';
+        } else {
+            if (txtEl) txtEl.textContent = 'Calculating route\u2026';
+        }
     });
 })();

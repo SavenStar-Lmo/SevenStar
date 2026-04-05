@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════════
-   SevenStar Limo & Chauffeur — booking.css
+   SevenStar Limo & Chauffeur — booking_form.css
    Booking form styles · all classes prefixed with bf__
    Scoped to .bf__page — zero conflict with nav__ ftr__ hp__ etc.
 ════════════════════════════════════════════════════════════════ */
@@ -24,6 +24,10 @@
     --bf-warn-bg:     #fffbf0;
     --bf-warn-border: #e8d08a;
     --bf-warn-text:   #7a5c00;
+    --bf-wa:          #25D366;
+    --bf-wa-dk:       #1da851;
+    --bf-wa-bg:       rgba(37,211,102,0.09);
+    --bf-wa-border:   rgba(37,211,102,0.3);
     --bf-serif:       'Cormorant Garamond', Georgia, serif;
     --bf-sans:        'Jost', system-ui, sans-serif;
     --bf-ease:        cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -243,6 +247,14 @@
 .bf__notice strong { display: block; font-size: .87rem; font-weight: 600; color: var(--bf-ink); margin-bottom: .2rem; }
 .bf__notice-ico { font-size: 1.3rem; flex-shrink: 0; line-height: 1.4; }
 
+/* WhatsApp notice variant */
+.bf__notice--wa {
+    background: var(--bf-wa-bg);
+    border-color: var(--bf-wa-border);
+}
+.bf__notice--wa strong { color: #1a6e3a; }
+.bf__notice--wa { color: #2d4a35; }
+
 /* ── Vehicle cards ───────────────────────────────────────── */
 .bf__vg { display: grid; gap: .85rem; }
 .bf__vc {
@@ -264,7 +276,6 @@
 }
 .bf__vname { font-family: var(--bf-serif); font-size: .95rem; font-weight: 500; color: var(--bf-ink); }
 .bf__vmeta { font-size: .72rem; color: var(--bf-ink-muted); margin-top: .2rem; line-height: 1.4; }
-.bf__vprice { font-size: .72rem; color: var(--bf-gold-dk); font-weight: 600; margin-top: .4rem; min-height: 14px; }
 .bf__vchk {
     position: absolute; top: .55rem; right: .55rem;
     width: 18px; height: 18px; background: var(--bf-gold); border-radius: 50%;
@@ -337,7 +348,6 @@
     height: 50px;
 }
 
-/* seat back */
 .bf__baby-seat-back {
     position: absolute;
     bottom: 12px;
@@ -349,8 +359,6 @@
     border-radius: 7px 7px 3px 3px;
     box-shadow: 0 3px 10px rgba(184,144,46,.35), inset 0 1px 0 rgba(255,255,255,.2);
 }
-
-/* padding on seat back */
 .bf__baby-seat-back::after {
     content: '';
     position: absolute;
@@ -359,8 +367,6 @@
     background: rgba(255,255,255,.1);
     border-radius: 4px 4px 2px 2px;
 }
-
-/* seat base */
 .bf__baby-seat-base {
     position: absolute;
     bottom: 0;
@@ -372,8 +378,6 @@
     border-radius: 4px 4px 7px 7px;
     box-shadow: 0 4px 8px rgba(0,0,0,.18);
 }
-
-/* tray / bumper bar */
 .bf__baby-tray {
     position: absolute;
     bottom: 24px;
@@ -386,8 +390,6 @@
     box-shadow: 0 2px 5px rgba(0,0,0,.15);
     z-index: 2;
 }
-
-/* harness straps */
 .bf__baby-harness {
     position: absolute;
     bottom: 30px;
@@ -401,8 +403,6 @@
     border-radius: 0 0 5px 5px;
     z-index: 3;
 }
-
-/* the baby emoji — sitting on top of chair */
 .bf__baby-emoji {
     position: absolute;
     bottom: 20px;
@@ -414,8 +414,6 @@
     filter: drop-shadow(0 2px 4px rgba(0,0,0,.18));
     transition: transform .2s var(--bf-ease);
 }
-
-/* gentle bounce when active */
 .bf__ti--baby.on .bf__baby-emoji {
     animation: bf-baby-bob 1.6s ease-in-out infinite;
 }
@@ -443,6 +441,23 @@
 .bf__btn:hover   { background: var(--bf-gold-dk); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(184,144,46,.42); }
 .bf__btn:active  { transform: translateY(0); }
 .bf__btn:disabled { opacity: .65; cursor: not-allowed; transform: none !important; }
+
+/* WhatsApp button variant */
+.bf__btn--wa {
+    background: var(--bf-wa);
+    box-shadow: 0 4px 20px rgba(37,211,102,.28);
+    letter-spacing: .08em;
+    font-size: .85rem;
+}
+.bf__btn--wa:hover {
+    background: var(--bf-wa-dk);
+    box-shadow: 0 8px 28px rgba(37,211,102,.38);
+}
+
+/* WhatsApp button label — flex inner for icon alignment */
+.bf__btn--wa #bfBtnTxt {
+    display: flex; align-items: center; gap: .65rem;
+}
 
 /* spinner inside button */
 .bf__spin {
