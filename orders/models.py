@@ -48,6 +48,11 @@ class Order(models.Model):
     # Vehicle
     limo_service_type   = models.CharField(max_length=50)
     baby_seat           = models.BooleanField(default=False)
+    number_of_babies = models.IntegerField(default=0)
+    baby_ages = models.CharField(
+        max_length=100, blank=True, default="",
+        help_text="Comma-separated ages, e.g. '7 months,2 years,1 year'"
+    )
     return_ride         = models.BooleanField(default=False)
     special_instruction = models.TextField(null=True, blank=True)
     vehicle_colour      = models.CharField(max_length=30, null=True, blank=True)
