@@ -64,7 +64,13 @@ class Order(models.Model):
     total_price  = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     paid         = models.BooleanField(default=False)
     stripe_payment_intent_id = models.CharField(max_length=200, blank=True)
-    driver_fee   = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0)
+    driver_fee   = models.DecimalField(max_digits=10, decimal_places=2,blank=True, default=20)
+    driver_name    = models.CharField(max_length=100, blank=True, default='none')
+    driver_number  = models.CharField(max_length=100, blank=True, default='none')
+    driver_email   = models.CharField(max_length=100, blank=True, default='none')
+    driver_address = models.CharField(max_length=200, blank=True, default='none')
+    details_for_driver = models.CharField(max_length=500, blank=True, default='none')
+    
 
     # Meta
     created_at = models.DateTimeField(auto_now_add=True)
