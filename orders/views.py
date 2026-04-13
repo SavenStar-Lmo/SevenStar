@@ -68,56 +68,6 @@ _WHATSAPP_NUMBER = "61483841489"  # +61 483 841 489 in international format
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Baby age validation helper
-# ─────────────────────────────────────────────────────────────────────────────
-
-def _parse_baby_age_months(age_str):
-    """
-    Parse an age string like '7 months', '2 years', '18 months', '1 year'
-    into total months. Returns None if parsing fails.
-    Validates max 36 months (3 years).
-    """
-    val = age_str.strip().lower()
-    try:
-        if "month" in val:
-            months = int(val.split()[0])
-            return months
-        elif "year" in val:
-            years = int(val.split()[0])
-            return years * 12
-        else:
-            return None
-    except (ValueError, IndexError):
-        return None
-
-
-def _validate_baby_ages(post_data, n_babies):
-    """
-    Read baby_age_0..baby_age_N-1 from post_data.
-    Returns (age_parts_list, error_string_or_None).
-    Each entry is normalised to the original user input (stored as-is).
-    """
-    age_parts = []
-    for i in range(n_babies):
-        raw = post_data.get(f"baby_age_{i}", "").strip()
-        if not raw:
-            return None, f"Please enter the age for baby {i + 1}."
-        months = _parse_baby_age_months(raw)
-        if months is None:
-            return None, (
-                f"Invalid age format for baby {i + 1}. "
-                f"Use e.g. '7 months' or '2 years'."
-            )
-        if months > 36:
-            return None, (
-                f"Baby {i + 1} is over 3 years old. "
-                f"We only provide baby seats for children up to 3 years."
-            )
-        age_parts.append(raw.lower())
-    return age_parts, None
-
-
-# ─────────────────────────────────────────────────────────────────────────────
 # Notification emails (async, non-blocking)
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -262,8 +212,8 @@ def _send_notifications_async(order):
                 f"</div>"
                 f"<p style='color:{TEXT};font-size:15px;margin:0 0 20px;'>"
                 f"Dear {order.passenger_name},<br><br>"
-                f"Thank you for choosing SevenStar. We have received your hourly hire enquiry "
-                f"and our team will be in touch via WhatsApp shortly to confirm pricing and details."
+                f"Thank you for choosing SevenStar. We have received your enquiry "
+                f"and our team will be in touch shortly to confirm details."
                 f"</p>"
                 + _table(*customer_rows)
                 + f"<div style='margin-top:24px;padding:16px;background:{SURFACE};"
@@ -271,7 +221,7 @@ def _send_notifications_async(order):
                 f"<p style='margin:0;color:{MUTED};font-size:13px;line-height:1.6;'>"
                 f"Save your reference number "
                 f"<strong style='color:{GOLD};'>#{reference}</strong>. "
-                f"Our team will contact you on WhatsApp to confirm your booking."
+                f"Our team will contact you to confirm your booking."
                 f"</p></div>"
                 + f"<p style='text-align:center;color:#555;font-size:12px;margin-top:28px;'>"
                 f"SevenStar Limo &amp; Chauffeur Melbourne<br>"
@@ -281,12 +231,12 @@ def _send_notifications_async(order):
 
             try:
                 send_mail(
-                    subject=f"Hourly Hire Enquiry Received — Reference #{reference}",
+                    subject=f"Booking Enquiry Received — Reference #{reference}",
                     message=(
                         f"Dear {order.passenger_name},\n\n"
-                        f"We've received your hourly hire enquiry.\n"
+                        f"We've received your enquiry.\n"
                         f"Reference: #{reference}\n"
-                        f"Our team will contact you via WhatsApp to confirm details.\n\n"
+                        f"Our team will contact you to confirm details.\n\n"
                         f"Thank you for choosing SevenStar Limo & Chauffeur."
                     ),
                     from_email=settings.SERVER_EMAIL,
@@ -515,7 +465,6 @@ def calculate_price(
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _build_whatsapp_url(order, hours: str) -> str:
-    """Build a pre-filled WhatsApp message URL for hourly bookings."""
     reference = str(order.id).zfill(6)
     lines = [
         f"*New Hourly Hire Enquiry — #{reference}*",
@@ -582,15 +531,16 @@ def orders(request):
         pickup_time_raw = request.POST.get("pickup_time", "").strip() or None
         hourly_hours    = request.POST.get("hourly_hours", "").strip() if is_hourly else ""
 
-        # ── Baby seat details ─────────────────────────────────────────────
+        # ── Baby seat details (optional, no validation) ───────────────────
         n_babies      = 0
         baby_ages_raw = ""
         if has_baby_seat:
             try:
-                n_babies = int(request.POST.get("number_of_babies", 0))
+                n_babies = int(request.POST.get("number_of_babies", 0) or 0)
             except (ValueError, TypeError):
                 n_babies = 0
-            n_babies = max(0, min(4, n_babies))  # clamp 0–4
+            n_babies = max(0, min(4, n_babies))
+            baby_ages_raw = request.POST.get("baby_ages", "").strip()
 
         form_data = {
             "service_type_key":     type_key,
@@ -609,7 +559,7 @@ def orders(request):
             "limo_service_type":    vehicle,
             "baby_seat":            has_baby_seat,
             "number_of_babies":     n_babies,
-            "baby_ages":            "",  # will be filled after validation below
+            "baby_ages":            baby_ages_raw,
             "return_ride":          is_return_ride,
             "special_instruction":  request.POST.get("special_instruction", ""),
             "vehicle_colour":       request.POST.get("vehicle_colour", ""),
@@ -630,16 +580,6 @@ def orders(request):
                 "google_maps_key": settings.GOOGLE_MAPS_API_KEY,
                 "is_hourly": is_hourly,
             })
-
-        # ── Validate baby ages (shared for all service types) ─────────────
-        if has_baby_seat:
-            if n_babies == 0:
-                return form_error("Please select how many babies require a seat.")
-            age_parts, age_error = _validate_baby_ages(request.POST, n_babies)
-            if age_error:
-                return form_error(age_error)
-            baby_ages_raw = ",".join(age_parts)
-            form_data["baby_ages"] = baby_ages_raw
 
         # ── Hourly: save order then redirect to WhatsApp ──────────────────
         if is_hourly:
@@ -671,16 +611,13 @@ def orders(request):
                     wedding_ribbon=form_data["wedding_ribbon"],
                     special_signboard=form_data["special_signboard"],
                     hourly_hours=hourly_hours or None,
-                    total_price=None,  # no price — agent will quote
+                    total_price=None,
                     paid=False,
                 )
             except Exception as exc:
                 return form_error(f"Could not save your enquiry: {exc}")
 
-            # Send notification emails asynchronously
             _send_notifications_async(order)
-
-            # Redirect to WhatsApp
             wa_url = _build_whatsapp_url(order, hourly_hours or "Not specified")
             return HttpResponseRedirect(wa_url)
 
