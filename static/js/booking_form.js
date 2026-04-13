@@ -5,11 +5,15 @@
  *   - Passenger & bag dropdowns (built from data-* on cards)
  *   - Auto-upgrade vehicle when passenger/bag count exceeds capacity
  *   - Toggle switch add-ons (baby seat, return ride)
+ *   - Baby seat panel: count selector + dynamic age input fields
+ *     with client-side validation (≤ 3 years / 36 months)
  *   - Google Places autocomplete (pickup, destination, extra stop)
  *   - Date min = today
  *   - Submit loading state
  *
- * Depends on: BF_TYPE, BF_RATES, BF_IS_HOURLY — injected by booking_form.html
+ * Depends on globals injected by booking_form.html:
+ *   BF_TYPE, BF_RATES, BF_IS_HOURLY,
+ *   BF_BABY_SEAT_ON, BF_NUM_BABIES, BF_BABY_AGES_PREFILL
  */
 
 /* ── Init ───────────────────────────────────────────────────── */
@@ -34,7 +38,20 @@
         dateEl.min = today;
         if (!dateEl.value) dateEl.value = today;
     }
+
+    // Restore baby panel state after a validation error redirect
+    if (window.BF_BABY_SEAT_ON && window.BF_NUM_BABIES > 0) {
+        // The panel is already visible (Django rendered it so).
+        // Rebuild age fields and restore prefill values.
+        bfRenderBabyAges(window.BF_NUM_BABIES, _parsePrefillAges(window.BF_BABY_AGES_PREFILL));
+    }
 })();
+
+/* ── Parse comma-separated pre-fill ages from server ─────── */
+function _parsePrefillAges(str) {
+    if (!str) return [];
+    return str.split(',').map(function (s) { return s.trim(); });
+}
 
 /* ── Vehicle card selection ─────────────────────────────────── */
 window.bfPick = function (card) {
@@ -121,14 +138,199 @@ function bfUpgrade(rate, msg) {
     bfBuildDropdowns();
 }
 
-/* ── Toggle switches ────────────────────────────────────────── */
+/* ── Generic toggle switch ───────────────────────────────────── */
 window.bfToggle = function (divId, cbId) {
     var div = document.getElementById(divId);
     var cb  = document.getElementById(cbId);
     if (!div || !cb) return;
     div.classList.toggle('on');
     cb.checked = div.classList.contains('on');
+    div.setAttribute('aria-checked', cb.checked ? 'true' : 'false');
 };
+
+/* ── Baby seat toggle (extended — also controls panel) ──────── */
+window.bfToggleBabySeat = function () {
+    var toggle = document.getElementById('bfBabySeatToggle');
+    var cb     = document.getElementById('bfBabySeatCb');
+    var panel  = document.getElementById('bfBabyPanel');
+    if (!toggle || !cb || !panel) return;
+
+    toggle.classList.toggle('on');
+    cb.checked = toggle.classList.contains('on');
+    toggle.setAttribute('aria-checked', cb.checked ? 'true' : 'false');
+
+    if (cb.checked) {
+        panel.style.display = 'block';
+    } else {
+        panel.style.display = 'none';
+        // Reset state when toggled off
+        var numSel = document.getElementById('bfNumBabies');
+        if (numSel) numSel.value = '0';
+        bfRenderBabyAges(0, []);
+    }
+};
+
+/* ── Baby count changed → rebuild age fields ────────────────── */
+window.bfRenderBabyAges = function (n, prefill) {
+    // Allow calling as bfRenderBabyAges() from the onchange attr (reads select value)
+    if (n === undefined) {
+        var sel = document.getElementById('bfNumBabies');
+        n = sel ? parseInt(sel.value, 10) || 0 : 0;
+    }
+    prefill = prefill || [];
+
+    var col = document.getElementById('bfBabyAgesCol');
+    if (!col) return;
+
+    col.innerHTML = '';
+
+    for (var i = 0; i < n; i++) {
+        (function (idx) {
+            var row = document.createElement('div');
+            row.className = 'bf__baby-age-row';
+
+            var label = document.createElement('label');
+            label.htmlFor = 'bfBabyAge' + idx;
+            label.innerHTML =
+                'Baby ' + (idx + 1) + ' Age ' +
+                '<span class="bf__req" aria-hidden="true">*</span>';
+
+            var input = document.createElement('input');
+            input.type        = 'text';
+            input.id          = 'bfBabyAge' + idx;
+            input.name        = 'baby_age_' + idx;
+            input.placeholder = 'e.g. 7 months or 2 years';
+            input.required    = true;
+            input.autocomplete = 'off';
+            input.setAttribute('aria-required', 'true');
+            input.setAttribute('aria-describedby', 'bfBabyAgeErr' + idx);
+
+            // Restore pre-fill if available (server sent form back after error)
+            if (prefill[idx]) {
+                input.value = prefill[idx];
+            }
+
+            var errMsg = document.createElement('span');
+            errMsg.className = 'bf__baby-age-errmsg';
+            errMsg.id        = 'bfBabyAgeErr' + idx;
+            errMsg.setAttribute('role', 'alert');
+            errMsg.innerHTML =
+                '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">' +
+                '<circle cx="6" cy="6" r="5" stroke="#b83232" stroke-width="1.2"/>' +
+                '<path d="M6 3.5v3M6 8v.5" stroke="#b83232" stroke-width="1.2" stroke-linecap="round"/>' +
+                '</svg>' +
+                'Age must be 3 years (36 months) or under.';
+
+            // Live validation on input
+            input.addEventListener('input', function () {
+                _validateAgeField(input, errMsg);
+            });
+            // Also validate on blur for UX
+            input.addEventListener('blur', function () {
+                _validateAgeField(input, errMsg);
+            });
+
+            row.appendChild(label);
+            row.appendChild(input);
+            row.appendChild(errMsg);
+            col.appendChild(row);
+
+            // Validate immediately if pre-filled
+            if (prefill[idx]) {
+                _validateAgeField(input, errMsg);
+            }
+        })(i);
+    }
+};
+
+/* ── Age field client-side validation ───────────────────────── */
+function _validateAgeField(input, errEl) {
+    var val     = input.value.trim().toLowerCase();
+    var invalid = false;
+
+    if (val.length > 0) {
+        if (val.indexOf('month') !== -1) {
+            var m = parseInt(val, 10);
+            if (isNaN(m) || m <= 0) {
+                invalid = true; // e.g. "months" with no number
+            } else if (m > 36) {
+                invalid = true;
+            }
+        } else if (val.indexOf('year') !== -1) {
+            var y = parseInt(val, 10);
+            if (isNaN(y) || y < 0) {
+                invalid = true;
+            } else if (y > 3) {
+                invalid = true;
+            }
+        } else if (val.length > 0) {
+            // Has content but no recognised unit — flag as invalid format
+            // (server will catch this too, but give immediate feedback)
+            invalid = true;
+            // Override error message for format issue
+            var spans = errEl.querySelectorAll('svg ~ *');
+            // Just keep the generic "must be 3 years or under" message —
+            // server will return a clear format error anyway.
+        }
+    }
+
+    if (invalid) {
+        input.classList.add('bf__age-err');
+        errEl.classList.add('show');
+        input.setCustomValidity('Age must be 3 years (36 months) or under.');
+    } else {
+        input.classList.remove('bf__age-err');
+        errEl.classList.remove('show');
+        input.setCustomValidity('');
+    }
+
+    return !invalid;
+}
+
+/* ── Pre-submit: validate all visible age fields ─────────────── */
+function _validateAllAgeFields() {
+    var panel = document.getElementById('bfBabyPanel');
+    if (!panel || panel.style.display === 'none') return true;
+
+    var cb = document.getElementById('bfBabySeatCb');
+    if (!cb || !cb.checked) return true;
+
+    var numSel = document.getElementById('bfNumBabies');
+    var n = numSel ? parseInt(numSel.value, 10) || 0 : 0;
+
+    if (n === 0) {
+        // No count selected — block submit with a custom message
+        if (numSel) {
+            numSel.setCustomValidity('Please select how many babies require a seat.');
+            numSel.reportValidity();
+            numSel.setCustomValidity(''); // reset so it doesn't block again
+        }
+        return false;
+    }
+
+    var allOk = true;
+    for (var i = 0; i < n; i++) {
+        var inp    = document.getElementById('bfBabyAge' + i);
+        var errEl  = document.getElementById('bfBabyAgeErr' + i);
+        if (!inp) { allOk = false; continue; }
+        var ok = _validateAgeField(inp, errEl);
+        if (!ok) allOk = false;
+        // Also check not empty
+        if (!inp.value.trim()) {
+            inp.setCustomValidity('Please enter the age for baby ' + (i + 1) + '.');
+            inp.classList.add('bf__age-err');
+            allOk = false;
+        }
+    }
+
+    if (!allOk) {
+        // Scroll to first invalid age field
+        var firstErr = document.querySelector('.bf__age-err');
+        if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    return allOk;
+}
 
 /* ── Google Places autocomplete ─────────────────────────────── */
 function bfSetupAC(inputEl, listEl) {
@@ -213,11 +415,18 @@ window.bfMapsReady = function () {
     }
 };
 
-/* ── Submit loading state ───────────────────────────────────── */
+/* ── Submit: validate + loading state ───────────────────────── */
 (function () {
     var form = document.getElementById('bfForm');
     if (!form) return;
-    form.addEventListener('submit', function () {
+
+    form.addEventListener('submit', function (e) {
+        // Run client-side baby age validation before submitting
+        if (!_validateAllAgeFields()) {
+            e.preventDefault();
+            return;
+        }
+
         var btn     = document.getElementById('bfSubmit');
         var spinner = document.getElementById('bfSpin');
         var arrow   = document.getElementById('bfBtnArrow');
