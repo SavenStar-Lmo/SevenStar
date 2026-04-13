@@ -257,6 +257,7 @@ DEFAULT_FROM_EMAIL = "SevenStar Management <management@sevenstarlimo.com.au>"
 SERVER_EMAIL = "server@sevenstarlimo.com.au"
 ADMIN_NAME = os.environ.get('ADMIN_NAME')
 ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
-ADMINS = [
-    (ADMIN_NAME, ADMIN_EMAIL),
-]
+# ADMINS = [
+#     (ADMIN_NAME, ADMIN_EMAIL),
+# ]
+# 
