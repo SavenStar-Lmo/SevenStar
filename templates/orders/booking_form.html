@@ -121,7 +121,7 @@
     </div>
     {% endif %}
 
-    {# Hourly — WhatsApp routing notice (no price info) #}
+    {# Hourly — WhatsApp routing notice #}
     {% if type_key == "oh" %}
     <div class="bf__notice bf__notice--wa" role="note">
         <span class="bf__notice-ico" aria-hidden="true">💬</span>
@@ -141,6 +141,7 @@
                value="{{ form_data.limo_service_type|default:'' }}">
 
 
+        {# ── Section 1: Your Details ── #}
         <div class="bf__card">
             <div class="bf__sh">
                 <div class="bf__sn" aria-hidden="true">1</div>
@@ -179,6 +180,7 @@
         </div>
 
 
+        {# ── Section 2: Journey Details ── #}
         <div class="bf__card">
             <div class="bf__sh">
                 <div class="bf__sn" aria-hidden="true">2</div>
@@ -320,6 +322,7 @@
         </div>
 
 
+        {# ── Section 3: Vehicle & Passengers ── #}
         <div class="bf__card">
             <div class="bf__sh">
                 <div class="bf__sn" aria-hidden="true">3</div>
@@ -386,6 +389,7 @@
         </div>
 
 
+        {# ── Section 4: Add-ons & Extras ── #}
         <div class="bf__card">
             <div class="bf__sh">
                 <div class="bf__sn" aria-hidden="true">4</div>
@@ -393,25 +397,17 @@
             </div>
             <div class="bf__tg" role="group" aria-label="Optional add-ons">
 
-                {# ── Baby seat toggle ──────────────────────────────────────── #}
-                <div class="bf__ti bf__ti--baby{% if form_data.baby_seat %} on{% endif %}"
+                {# ── Baby seat toggle ──────────────────────────────────── #}
+                <div class="bf__ti{% if form_data.baby_seat %} on{% endif %}"
                      id="bfBabySeatToggle"
-                     onclick="bfToggleBabySeat()"
+                     onclick="bfToggle('bfBabySeatToggle','bfBabySeatCb')"
                      role="checkbox"
                      aria-checked="{% if form_data.baby_seat %}true{% else %}false{% endif %}"
                      tabindex="0"
-                     aria-label="Baby / child safety seat — add $20.00"
-                     onkeydown="if(event.key==='Enter'||event.key===' '){bfToggleBabySeat();event.preventDefault();}">
+                     aria-label="Baby / child safety seat{% if not is_hourly %} — add $20.00{% endif %}"
+                     onkeydown="if(event.key==='Enter'||event.key===' '){bfToggle('bfBabySeatToggle','bfBabySeatCb');event.preventDefault();}">
                     <div class="bf__tileft">
-                        <div class="bf__baby-scene" aria-hidden="true">
-                            <div class="bf__baby-chair">
-                                <div class="bf__baby-seat-back"></div>
-                                <div class="bf__baby-seat-base"></div>
-                                <div class="bf__baby-tray"></div>
-                                <div class="bf__baby-harness"></div>
-                            </div>
-                            <div class="bf__baby-emoji">👶</div>
-                        </div>
+                        <span class="bf__ticon" aria-hidden="true">🍼</span>
                         <div class="bf__ttxt">
                             <strong>Baby / Child Seat</strong>
                             <span>Approved safety seat{% if not is_hourly %} — +$20.00{% endif %}</span>
@@ -422,61 +418,40 @@
                            {% if form_data.baby_seat %}checked{% endif %}>
                 </div>
 
-                {# ── Baby details panel — visible only when baby seat is on ── #}
-                <div class="bf__baby-panel" id="bfBabyPanel"
-                     aria-live="polite"
-                     style="display:{% if form_data.baby_seat %}block{% else %}none{% endif %};">
-
-                    <div class="bf__baby-panel-inner">
-
-                        <div class="bf__baby-panel-header" aria-hidden="true">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                <circle cx="8" cy="8" r="7" stroke="#b8902e" stroke-width="1.3"/>
-                                <path d="M8 5v3.5L10 10" stroke="#b8902e" stroke-width="1.3" stroke-linecap="round"/>
-                            </svg>
-                            Baby details required
+                {# ── Baby plain fields — always visible, optional ───────── #}
+                <div class="bf__baby-fields">
+                    <div class="bf__g2">
+                        <div class="bf__f">
+                            <label for="bfNumBabies">
+                                Number of Babies
+                                <small style="text-transform:none;letter-spacing:0;font-weight:300;color:var(--bf-ink-muted);">(optional)</small>
+                            </label>
+                            <input type="number" id="bfNumBabies" name="number_of_babies"
+                                   min="0" max="4"
+                                   placeholder="e.g. 2"
+                                   value="{{ form_data.number_of_babies|default:'' }}">
                         </div>
 
-                        <div class="bf__g2">
-                            <div class="bf__f">
-                                <label for="bfNumBabies">
-                                    Number of Babies
-                                    <span class="bf__req" aria-hidden="true">*</span>
-                                </label>
-                                <select id="bfNumBabies" name="number_of_babies"
-                                        onchange="bfRenderBabyAges()"
-                                        aria-required="true">
-                                    <option value="0">Select…</option>
-                                    <option value="1"{% if form_data.number_of_babies == 1 %} selected{% endif %}>1 Baby</option>
-                                    <option value="2"{% if form_data.number_of_babies == 2 %} selected{% endif %}>2 Babies</option>
-                                    <option value="3"{% if form_data.number_of_babies == 3 %} selected{% endif %}>3 Babies</option>
-                                    <option value="4"{% if form_data.number_of_babies == 4 %} selected{% endif %}>4 Babies</option>
-                                </select>
-                            </div>
-
-                            {# placeholder for age inputs — filled by JS #}
-                            <div class="bf__baby-ages-col" id="bfBabyAgesCol" aria-live="polite"></div>
+                        <div class="bf__f">
+                            <label for="bfBabyAges">
+                                Ages of Babies
+                                <small style="text-transform:none;letter-spacing:0;font-weight:300;color:var(--bf-ink-muted);">(optional)</small>
+                            </label>
+                            <input type="text" id="bfBabyAges" name="baby_ages"
+                                   placeholder="e.g. 7 months, 2 years"
+                                   value="{{ form_data.baby_ages|default:'' }}">
+                            <span class="bf__help">
+                                <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                                    <circle cx="6" cy="6" r="5" stroke="#a09890" stroke-width="1.2"/>
+                                    <path d="M6 5v3M6 3.5v.5" stroke="#a09890" stroke-width="1.2" stroke-linecap="round"/>
+                                </svg>
+                                Separate each age with a comma — e.g. <em>7 months, 2 years</em>
+                            </span>
                         </div>
-
-                        {# pre-filled age inputs when returning from validation error #}
-                        {# these are written as hidden inputs so JS can read them on init #}
-                        {% if form_data.baby_seat and form_data.baby_ages %}
-                        <div id="bfBabyAgesPrefill" style="display:none;"
-                             data-ages="{{ form_data.baby_ages }}"></div>
-                        {% endif %}
-
-                        <p class="bf__baby-panel-note">
-                            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                                <circle cx="7" cy="7" r="6" stroke="#b8902e" stroke-width="1.2"/>
-                                <path d="M7 4.5v3M7 9.5v.5" stroke="#b8902e" stroke-width="1.2" stroke-linecap="round"/>
-                            </svg>
-                            We accommodate babies up to <strong>3 years old</strong> only.
-                            Enter age as <em>7 months</em> or <em>2 years</em>.
-                        </p>
-
                     </div>
                 </div>
 
+                {# ── Return journey toggle ─────────────────────────────── #}
                 {% if not is_hourly %}
                 <div class="bf__ti{% if form_data.return_ride %} on{% endif %}"
                      id="bfReturnToggle"
@@ -502,6 +477,8 @@
             </div>
         </div>
 
+
+        {# ── Section 5: Vehicle Preferences ── #}
         <div class="bf__card">
             <div class="bf__sh">
                 <div class="bf__sn" aria-hidden="true">5</div>
@@ -526,7 +503,7 @@
             </div>
         </div>
 
-        {# Submit — WhatsApp for hourly, calculate for others #}
+        {# ── Submit ── #}
         {% if is_hourly %}
         <button type="submit" class="bf__btn bf__btn--wa" id="bfSubmit">
             <span id="bfBtnTxt">
@@ -577,11 +554,6 @@ window.BF_LOCK_PICKUP  = {% if form_data.lock_pickup %}true{% else %}false{% end
 window.BF_LOCK_DEST    = {% if form_data.lock_destination %}true{% else %}false{% endif %};
 window.BF_DEFAULT_PASS = {{ form_data.number_of_passengers|default:2 }};
 window.BF_DEFAULT_BAGS = {{ form_data.number_of_bags|default:2 }};
-
-/* Pre-fill baby ages after a validation error (server sent form back) */
-window.BF_BABY_SEAT_ON     = {% if form_data.baby_seat %}true{% else %}false{% endif %};
-window.BF_NUM_BABIES       = {{ form_data.number_of_babies|default:0 }};
-window.BF_BABY_AGES_PREFILL = "{{ form_data.baby_ages|default:''|escapejs }}";
 
 window.BF_RATES = [];
 document.querySelectorAll(".bf__vc").forEach(function (card) {

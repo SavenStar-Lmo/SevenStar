@@ -205,6 +205,17 @@
 }
 .bf__f textarea { resize: vertical; min-height: 76px; }
 
+/* field help text */
+.bf__help {
+    font-size: .72rem;
+    color: var(--bf-ink-muted);
+    margin-top: .4rem;
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+    line-height: 1.4;
+}
+
 /* locked field */
 .bf__locked {
     background: var(--bf-cream-2) !important;
@@ -328,216 +339,14 @@
 .bf__ti.on .bf__tth { transform: translateX(18px); }
 .bf__ti input { display: none; }
 
-/* ── Baby seat toggle — special scene ───────────────────── */
-.bf__ti--baby { padding: 1rem 1.1rem; }
-.bf__ti--baby .bf__tileft { align-items: center; gap: 1.1rem; }
-
-.bf__baby-scene {
-    position: relative;
-    width: 58px;
-    height: 64px;
-    flex-shrink: 0;
-}
-
-.bf__baby-chair {
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 46px;
-    height: 50px;
-}
-
-.bf__baby-seat-back {
-    position: absolute;
-    bottom: 12px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 34px;
-    height: 38px;
-    background: linear-gradient(155deg, #d4aa4a 0%, #b8902e 60%, #9a7520 100%);
-    border-radius: 7px 7px 3px 3px;
-    box-shadow: 0 3px 10px rgba(184,144,46,.35), inset 0 1px 0 rgba(255,255,255,.2);
-}
-.bf__baby-seat-back::after {
-    content: '';
-    position: absolute;
-    top: 5px; left: 4px; right: 4px;
-    height: 22px;
-    background: rgba(255,255,255,.1);
-    border-radius: 4px 4px 2px 2px;
-}
-.bf__baby-seat-base {
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 42px;
-    height: 16px;
-    background: linear-gradient(180deg, #c8a040 0%, #9a7520 100%);
-    border-radius: 4px 4px 7px 7px;
-    box-shadow: 0 4px 8px rgba(0,0,0,.18);
-}
-.bf__baby-tray {
-    position: absolute;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 44px;
-    height: 6px;
-    background: linear-gradient(180deg, #e0b84a 0%, #b8902e 100%);
-    border-radius: 3px;
-    box-shadow: 0 2px 5px rgba(0,0,0,.15);
-    z-index: 2;
-}
-.bf__baby-harness {
-    position: absolute;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 24px;
-    height: 20px;
-    border-left: 2.5px solid rgba(255,255,255,.5);
-    border-right: 2.5px solid rgba(255,255,255,.5);
-    border-top: none;
-    border-radius: 0 0 5px 5px;
-    z-index: 3;
-}
-.bf__baby-emoji {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 2rem;
-    line-height: 1;
-    z-index: 4;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,.18));
-    transition: transform .2s var(--bf-ease);
-}
-.bf__ti--baby.on .bf__baby-emoji {
-    animation: bf-baby-bob 1.6s ease-in-out infinite;
-}
-
-/* ── Baby details panel ──────────────────────────────────── */
-.bf__baby-panel {
-    border-radius: var(--bf-rs);
-    overflow: hidden;
-    /* animate open/close via JS by toggling display — 
-       or use a max-height transition for a smoother feel */
-    animation: bf-panel-in .22s var(--bf-ease) both;
-}
-
-@keyframes bf-panel-in {
-    from { opacity: 0; transform: translateY(-6px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-.bf__baby-panel-inner {
+/* ── Baby fields row ─────────────────────────────────────── */
+.bf__baby-fields {
+    margin-top: .85rem;
+    padding: 1rem 1.2rem;
     background: var(--bf-warn-bg);
-    border: 1.5px solid var(--bf-warn-border);
+    border: 1px solid var(--bf-warn-border);
     border-radius: var(--bf-rs);
-    padding: 1.2rem 1.4rem 1.1rem;
 }
-
-.bf__baby-panel-header {
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    font-size: .65rem;
-    font-weight: 700;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    color: var(--bf-gold-dk);
-    margin-bottom: 1.1rem;
-}
-
-/* The two-column grid inside the panel */
-.bf__baby-panel-inner .bf__g2 {
-    align-items: start;
-}
-
-/* Ages column — fills the right cell of the grid */
-.bf__baby-ages-col {
-    display: flex;
-    flex-direction: column;
-    gap: .75rem;
-}
-
-/* Individual age row */
-.bf__baby-age-row {
-    display: flex;
-    flex-direction: column;
-    gap: .35rem;
-}
-
-.bf__baby-age-row label {
-    font-size: .63rem;
-    font-weight: 600;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    color: var(--bf-ink-2);
-}
-
-.bf__baby-age-row input {
-    width: 100%;
-    padding: .75rem 1rem;
-    border: 1.5px solid var(--bf-border);
-    border-radius: var(--bf-rs);
-    font-family: var(--bf-sans);
-    font-size: .88rem;
-    font-weight: 300;
-    color: var(--bf-ink);
-    background: var(--bf-white);
-    outline: none;
-    -webkit-appearance: none;
-    appearance: none;
-    transition: border-color .2s, box-shadow .2s;
-}
-
-.bf__baby-age-row input::placeholder {
-    color: var(--bf-ink-muted);
-    font-weight: 300;
-}
-
-.bf__baby-age-row input:hover {
-    border-color: rgba(184,144,46,.4);
-}
-
-.bf__baby-age-row input:focus {
-    border-color: var(--bf-border-f);
-    background: var(--bf-white);
-    box-shadow: 0 0 0 3px var(--bf-gold-ring);
-}
-
-.bf__baby-age-row input.bf__age-err {
-    border-color: var(--bf-err);
-    box-shadow: 0 0 0 3px rgba(184,50,50,.12);
-}
-
-.bf__baby-age-errmsg {
-    font-size: .72rem;
-    color: var(--bf-err);
-    display: none;
-    align-items: center;
-    gap: .3rem;
-    line-height: 1.4;
-}
-.bf__baby-age-errmsg.show {
-    display: flex;
-}
-
-.bf__baby-panel-note {
-    margin: 1rem 0 0;
-    font-size: .75rem;
-    color: var(--bf-ink-soft);
-    display: flex;
-    align-items: flex-start;
-    gap: .45rem;
-    line-height: 1.5;
-}
-.bf__baby-panel-note svg { flex-shrink: 0; margin-top: 1px; }
-.bf__baby-panel-note strong { color: var(--bf-ink); }
-.bf__baby-panel-note em { font-style: italic; color: var(--bf-gold-dk); }
 
 /* ── Error banner ────────────────────────────────────────── */
 .bf__err {
@@ -602,19 +411,7 @@
     .bf__vg       { grid-template-columns: 1fr !important; }
     .bf__pl       { width: 32px; }
     .bf__wrap     { padding: 2rem 1rem 5rem; }
-
-    /* On mobile, age fields go below the baby count (full width) */
-    .bf__baby-panel-inner .bf__g2 {
-        grid-template-columns: 1fr;
-    }
-    .bf__baby-ages-col {
-        /* already block stacked on 1-col */
-    }
 }
 
 /* ── Animations ──────────────────────────────────────────── */
-@keyframes bf-spin     { to { transform: rotate(360deg); } }
-@keyframes bf-baby-bob {
-    0%, 100% { transform: translateX(-50%) translateY(0); }
-    50%       { transform: translateX(-50%) translateY(-4px); }
-}
+@keyframes bf-spin { to { transform: rotate(360deg); } }
