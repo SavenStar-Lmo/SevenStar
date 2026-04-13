@@ -59,7 +59,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     
     # my apps 
-    #'anymail',
+    'anymail',
     'pwa',
     'core',
     'orders',
@@ -121,7 +121,6 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -241,23 +240,23 @@ PWA_APP_SCREENSHOTS = [
 
 PWA_SERVICE_WORKER_PATH = BASE_DIR / 'sw.js'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com' 
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER','')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD','')
-DEFAULT_FROM_EMAIL = ' SevenStar Limo <management@sevenstarlimo.com.au>'
-
-# EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com' 
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER','')
+# EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD','')
+# DEFAULT_FROM_EMAIL = ' SevenStar Limo <management@sevenstarlimo.com.au>'
 # 
-# ANYMAIL = {
-#     "RESEND_API_KEY": os.environ.get('RESEND_API_KEY',''),
-# }
-# DEFAULT_FROM_EMAIL = "SevenStar Management <management@sevenstarlimo.com.au>"
-# SERVER_EMAIL = "server@sevenstarlimo.com.au"
-# ADMIN_NAME = os.environ.get('ADMIN_NAME')
-# ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
-# ADMINS = [
-#     (ADMIN_NAME, ADMIN_EMAIL),
-# ]
+EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+
+ANYMAIL = {
+    "RESEND_API_KEY": os.environ.get('RESEND_API_KEY',''),
+}
+DEFAULT_FROM_EMAIL = "SevenStar Management <management@sevenstarlimo.com.au>"
+SERVER_EMAIL = "server@sevenstarlimo.com.au"
+ADMIN_NAME = os.environ.get('ADMIN_NAME')
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
+ADMINS = [
+    (ADMIN_NAME, ADMIN_EMAIL),
+]
