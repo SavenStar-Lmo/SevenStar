@@ -339,13 +339,35 @@
 .bf__ti.on .bf__tth { transform: translateX(18px); }
 .bf__ti input { display: none; }
 
-/* ── Baby fields row ─────────────────────────────────────── */
+/* ── Baby / Child seat panel ─────────────────────────────── */
 .bf__baby-fields {
     margin-top: .85rem;
-    padding: 1rem 1.2rem;
+    padding: 1.2rem 1.4rem 1rem;
     background: var(--bf-warn-bg);
     border: 1px solid var(--bf-warn-border);
     border-radius: var(--bf-rs);
+    /* smooth expand/collapse handled by JS display toggle */
+}
+
+/* Individual child age row */
+.bf__child-age-row {
+    margin-bottom: .75rem;
+}
+.bf__child-age-row:last-child {
+    margin-bottom: 0;
+}
+
+/* Child age row header badge */
+.bf__child-age-row .bf__f label::before {
+    content: '👶 ';
+    font-style: normal;
+}
+
+/* Divider between seat selector and age fields */
+#bfChildAgeFields:not(:empty) {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--bf-warn-border);
 }
 
 /* ── Error banner ────────────────────────────────────────── */
@@ -411,6 +433,7 @@
     .bf__vg       { grid-template-columns: 1fr !important; }
     .bf__pl       { width: 32px; }
     .bf__wrap     { padding: 2rem 1rem 5rem; }
+    .bf__baby-fields { padding: 1rem; }
 }
 
 /* ── Animations ──────────────────────────────────────────── */

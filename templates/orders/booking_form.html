@@ -397,20 +397,22 @@
             </div>
             <div class="bf__tg" role="group" aria-label="Optional add-ons">
 
-                {# ── Baby seat toggle ──────────────────────────────────── #}
+                {# ── Baby / Child seat toggle ──────────────────────────────────── #}
                 <div class="bf__ti{% if form_data.baby_seat %} on{% endif %}"
                      id="bfBabySeatToggle"
                      onclick="bfToggle('bfBabySeatToggle','bfBabySeatCb')"
                      role="checkbox"
                      aria-checked="{% if form_data.baby_seat %}true{% else %}false{% endif %}"
                      tabindex="0"
-                     aria-label="Baby / child safety seat{% if not is_hourly %} — add $20.00{% endif %}"
+                     aria-label="Baby / child safety seat{% if not is_hourly %} — $15.00 per seat{% endif %}"
                      onkeydown="if(event.key==='Enter'||event.key===' '){bfToggle('bfBabySeatToggle','bfBabySeatCb');event.preventDefault();}">
                     <div class="bf__tileft">
-                        <span class="bf__ticon" aria-hidden="true">🍼</span>
+                        <span class="bf__ticon" aria-hidden="true">
+                            💺
+                        </span>
                         <div class="bf__ttxt">
                             <strong>Baby / Child Seat</strong>
-                            <span>Approved safety seat{% if not is_hourly %} — +$20.00{% endif %}</span>
+                            <span>Approved safety seat for children up to 10 years{% if not is_hourly %} — +$15.00 per seat{% endif %}</span>
                         </div>
                     </div>
                     <div class="bf__tsw" aria-hidden="true"><div class="bf__tth"></div></div>
@@ -418,37 +420,63 @@
                            {% if form_data.baby_seat %}checked{% endif %}>
                 </div>
 
-                {# ── Baby plain fields — always visible, optional ───────── #}
-                <div class="bf__baby-fields">
-                    <div class="bf__g2">
-                        <div class="bf__f">
-                            <label for="bfNumBabies">
-                                Number of Babies
-                                <small style="text-transform:none;letter-spacing:0;font-weight:300;color:var(--bf-ink-muted);">(optional)</small>
-                            </label>
-                            <input type="number" id="bfNumBabies" name="number_of_babies"
-                                   min="0" max="4"
-                                   placeholder="e.g. 2"
-                                   value="{{ form_data.number_of_babies|default:'' }}">
-                        </div>
+                {# ── Child seat fields — shown/hidden by JS ───────────── #}
+                <div class="bf__baby-fields" id="bfChildFields"
+                     style="{% if not form_data.baby_seat %}display:none;{% endif %}">
 
-                        <div class="bf__f">
-                            <label for="bfBabyAges">
-                                Ages of Babies
-                                <small style="text-transform:none;letter-spacing:0;font-weight:300;color:var(--bf-ink-muted);">(optional)</small>
-                            </label>
-                            <input type="text" id="bfBabyAges" name="baby_ages"
-                                   placeholder="e.g. 7 months, 2 years"
-                                   value="{{ form_data.baby_ages|default:'' }}">
-                            <span class="bf__help">
-                                <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                                    <circle cx="6" cy="6" r="5" stroke="#a09890" stroke-width="1.2"/>
-                                    <path d="M6 5v3M6 3.5v.5" stroke="#a09890" stroke-width="1.2" stroke-linecap="round"/>
-                                </svg>
-                                Separate each age with a comma — e.g. <em>7 months, 2 years</em>
-                            </span>
-                        </div>
+                    {# Number of Seats selector #}
+                    <div class="bf__f" style="margin-bottom:1rem;">
+                        <label for="bfNumSeats">Number of Seats <span class="bf__req" aria-hidden="true">*</span></label>
+                        <select id="bfNumSeats" name="number_of_babies"
+                                aria-required="true"
+                                onchange="bfUpdateChildAgeFields(this.value)">
+                            <option value="0">Select number of seats…</option>
+                            <option value="1"{% if form_data.number_of_babies == 1 %} selected{% endif %}>1 Seat</option>
+                            <option value="2"{% if form_data.number_of_babies == 2 %} selected{% endif %}>2 Seats</option>
+                            <option value="3"{% if form_data.number_of_babies == 3 %} selected{% endif %}>3 Seats</option>
+                            <option value="4"{% if form_data.number_of_babies == 4 %} selected{% endif %}>4 Seats</option>
+                        </select>
+                        <span class="bf__help">
+                            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                                <circle cx="6" cy="6" r="5" stroke="#a09890" stroke-width="1.2"/>
+                                <path d="M6 5v3M6 3.5v.5" stroke="#a09890" stroke-width="1.2" stroke-linecap="round"/>
+                            </svg>
+                            {% if not is_hourly %}$15.00 per seat — {% endif %}up to 4 seats available
+                        </span>
                     </div>
+
+                    {# Dynamic per-child age fields — rendered by JS, seeded here for POST errors #}
+                    <div id="bfChildAgeFields">
+                        {# JS will populate this; pre-populate on POST error if ages exist #}
+                        {% if form_data.baby_ages_list %}
+                            {% for age in form_data.baby_ages_list %}
+                            <div class="bf__child-age-row bf__g2" data-child="{{ forloop.counter }}"
+                                 style="margin-bottom:.75rem;align-items:end;">
+                                <div class="bf__f bf__s2">
+                                    <label for="bfChildAge{{ forloop.counter }}">
+                                        Age of Child {{ forloop.counter }}
+                                        <small style="text-transform:none;letter-spacing:0;font-weight:300;color:var(--bf-ink-muted);">(optional)</small>
+                                    </label>
+                                    <input type="text"
+                                           id="bfChildAge{{ forloop.counter }}"
+                                           name="child_age_{{ forloop.counter }}"
+                                           placeholder="e.g. 7 months or 3 years"
+                                           value="{{ age }}"
+                                           maxlength="30"
+                                           aria-label="Age of child {{ forloop.counter }}">
+                                    <span class="bf__help">
+                                        <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                                            <circle cx="6" cy="6" r="5" stroke="#a09890" stroke-width="1.2"/>
+                                            <path d="M6 5v3M6 3.5v.5" stroke="#a09890" stroke-width="1.2" stroke-linecap="round"/>
+                                        </svg>
+                                        Children accepted up to 10 years old
+                                    </span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
                 </div>
 
                 {# ── Return journey toggle ─────────────────────────────── #}
@@ -554,6 +582,9 @@ window.BF_LOCK_PICKUP  = {% if form_data.lock_pickup %}true{% else %}false{% end
 window.BF_LOCK_DEST    = {% if form_data.lock_destination %}true{% else %}false{% endif %};
 window.BF_DEFAULT_PASS = {{ form_data.number_of_passengers|default:2 }};
 window.BF_DEFAULT_BAGS = {{ form_data.number_of_bags|default:2 }};
+
+// Seed the child age fields on page load if coming back from a POST error
+window.BF_CHILD_AGES   = {{ form_data.baby_ages_list|default:"[]"|safe }};
 
 window.BF_RATES = [];
 document.querySelectorAll(".bf__vc").forEach(function (card) {

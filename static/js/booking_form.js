@@ -5,12 +5,13 @@
  *   - Passenger & bag dropdowns (built from data-* on cards)
  *   - Auto-upgrade vehicle when passenger/bag count exceeds capacity
  *   - Toggle switch add-ons (baby seat, return ride)
+ *   - Baby / Child seat: dynamic per-child age fields
  *   - Google Places autocomplete (pickup, destination, extra stop)
  *   - Date min = today
  *   - Submit loading state
  *
  * Depends on globals injected by booking_form.html:
- *   BF_TYPE, BF_RATES, BF_IS_HOURLY
+ *   BF_TYPE, BF_RATES, BF_IS_HOURLY, BF_CHILD_AGES
  */
 
 /* ── Init ───────────────────────────────────────────────────── */
@@ -35,7 +36,121 @@
         dateEl.min = today;
         if (!dateEl.value) dateEl.value = today;
     }
+
+    // If page loaded with baby seat already on (POST error re-render),
+    // sync the child age fields to the pre-populated seat count.
+    var seatSel = document.getElementById('bfNumSeats');
+    if (seatSel && parseInt(seatSel.value, 10) > 0) {
+        bfUpdateChildAgeFields(seatSel.value, window.BF_CHILD_AGES || []);
+    }
+
+    // Wire baby seat toggle to show/hide child panel (in addition to the generic toggle)
+    var babyCb = document.getElementById('bfBabySeatCb');
+    if (babyCb) {
+        babyCb.addEventListener('change', function () {
+            bfSyncChildPanel();
+        });
+    }
 })();
+
+
+/* ── Show / hide the child fields panel ─────────────────────── */
+function bfSyncChildPanel() {
+    var cb     = document.getElementById('bfBabySeatCb');
+    var panel  = document.getElementById('bfChildFields');
+    var seatSel = document.getElementById('bfNumSeats');
+    if (!cb || !panel) return;
+
+    if (cb.checked) {
+        panel.style.display = '';
+        // If no seats chosen yet, focus the selector
+        if (seatSel && parseInt(seatSel.value, 10) === 0) {
+            seatSel.focus();
+        }
+    } else {
+        panel.style.display = 'none';
+        // Clear age fields and reset selector
+        if (seatSel) seatSel.value = '0';
+        bfClearChildAgeFields();
+    }
+}
+
+
+/* ── Child age field builder ─────────────────────────────────── */
+/**
+ * Called when the "Number of Seats" selector changes.
+ * Rebuilds the per-child age inputs for exactly `n` children.
+ * Existing values are preserved when count increases.
+ *
+ * @param {string|number} n       - number of seats selected
+ * @param {string[]}      [seed]  - optional array of pre-filled age strings
+ */
+window.bfUpdateChildAgeFields = function (n, seed) {
+    n = parseInt(n, 10) || 0;
+    var container = document.getElementById('bfChildAgeFields');
+    if (!container) return;
+
+    // Collect current values before re-render so we don't lose what user typed
+    var existing = [];
+    container.querySelectorAll('input[name^="child_age_"]').forEach(function (inp) {
+        existing.push(inp.value);
+    });
+
+    // Use seed array (from server-rendered data) only on first call
+    var values = seed || existing;
+
+    // Clear and rebuild
+    container.innerHTML = '';
+
+    if (n === 0) return;
+
+    for (var i = 1; i <= n; i++) {
+        var prefill = (values[i - 1] !== undefined) ? values[i - 1] : '';
+
+        var row = document.createElement('div');
+        row.className  = 'bf__child-age-row';
+        row.dataset.child = i;
+
+        var fieldDiv = document.createElement('div');
+        fieldDiv.className = 'bf__f';
+
+        var label = document.createElement('label');
+        label.setAttribute('for', 'bfChildAge' + i);
+        label.innerHTML =
+            'Age of Child ' + i +
+            ' <small style="text-transform:none;letter-spacing:0;font-weight:300;color:var(--bf-ink-muted);">(optional)</small>';
+
+        var input = document.createElement('input');
+        input.type        = 'text';
+        input.id          = 'bfChildAge' + i;
+        input.name        = 'child_age_' + i;
+        input.placeholder = 'e.g. 7 months or 3 years';
+        input.maxLength   = 30;
+        input.value       = prefill;
+        input.setAttribute('aria-label', 'Age of child ' + i);
+
+        var help = document.createElement('span');
+        help.className = 'bf__help';
+        help.innerHTML =
+            '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">' +
+            '<circle cx="6" cy="6" r="5" stroke="#a09890" stroke-width="1.2"/>' +
+            '<path d="M6 5v3M6 3.5v.5" stroke="#a09890" stroke-width="1.2" stroke-linecap="round"/>' +
+            '</svg> Children accepted up to 10 years old';
+
+        fieldDiv.appendChild(label);
+        fieldDiv.appendChild(input);
+        fieldDiv.appendChild(help);
+        row.appendChild(fieldDiv);
+        container.appendChild(row);
+    }
+};
+
+
+function bfClearChildAgeFields() {
+    var container = document.getElementById('bfChildAgeFields');
+    if (container) container.innerHTML = '';
+}
+
 
 /* ── Vehicle card selection ─────────────────────────────────── */
 window.bfPick = function (card) {
@@ -130,6 +245,11 @@ window.bfToggle = function (divId, cbId) {
     div.classList.toggle('on');
     cb.checked = div.classList.contains('on');
     div.setAttribute('aria-checked', cb.checked ? 'true' : 'false');
+
+    // Extra: if this is the baby seat toggle, sync the child panel
+    if (cbId === 'bfBabySeatCb') {
+        bfSyncChildPanel();
+    }
 };
 
 /* ── Google Places autocomplete ─────────────────────────────── */
