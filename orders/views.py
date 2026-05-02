@@ -66,6 +66,9 @@ SERVICE_TYPES = {
 _WHATSAPP_SERVICE_TYPES = {"oh"}
 _WHATSAPP_NUMBER = "61483841489"  # +61 483 841 489 in international format
 
+# Cost per baby/child seat
+BABY_SEAT_COST_PER_SEAT = 15.00
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Notification emails (async, non-blocking)
@@ -135,11 +138,17 @@ def _send_notifications_async(order):
             if order.special_instruction:
                 admin_rows.append(_row("Special Instructions", order.special_instruction))
             if order.baby_seat:
-                admin_rows.append(_row("Baby Seat", "Yes"))
+                admin_rows.append(_row("Baby / Child Seats", "Yes"))
             if order.number_of_babies:
-                admin_rows.append(_row("Number of Babies", str(order.number_of_babies)))
+                admin_rows.append(_row("Number of Seats", str(order.number_of_babies)))
             if order.baby_ages:
-                admin_rows.append(_row("Baby Ages", order.baby_ages.replace(",", ", ")))
+                # baby_ages stored as comma-separated individual ages
+                ages_display = ", ".join(
+                    f"Child {i+1}: {a.strip()}"
+                    for i, a in enumerate(order.baby_ages.split(","))
+                    if a.strip()
+                )
+                admin_rows.append(_row("Ages of Children", ages_display))
             if order.total_price is not None:
                 admin_rows.append(_row("Amount Paid", f"A${order.total_price}", highlight=True))
 
@@ -193,11 +202,16 @@ def _send_notifications_async(order):
             if order.special_instruction:
                 customer_rows.append(_row("Special Instructions", order.special_instruction))
             if order.baby_seat:
-                customer_rows.append(_row("Baby Seat", "Yes"))
+                customer_rows.append(_row("Baby / Child Seats", "Yes"))
             if order.number_of_babies:
-                customer_rows.append(_row("Number of Babies", str(order.number_of_babies)))
+                customer_rows.append(_row("Number of Seats", str(order.number_of_babies)))
             if order.baby_ages:
-                customer_rows.append(_row("Baby Ages", order.baby_ages.replace(",", ", ")))
+                ages_display = ", ".join(
+                    f"Child {i+1}: {a.strip()}"
+                    for i, a in enumerate(order.baby_ages.split(","))
+                    if a.strip()
+                )
+                customer_rows.append(_row("Ages of Children", ages_display))
             if order.total_price is not None:
                 customer_rows.append(_row("Amount Paid", f"A${order.total_price}", highlight=True))
 
@@ -380,6 +394,7 @@ def calculate_price(
     vehicle:          str,
     extra_stop:       str | None,
     has_baby_seat:    bool,
+    number_of_seats:  int,
     is_return_ride:   bool,
     pickup_time=None,
     pickup_address:   str = "",
@@ -388,7 +403,13 @@ def calculate_price(
     rates                     = _get_rates()
     th_discount, ret_discount = _get_discounts()
     conf                      = _find_rate(rates, vehicle)
-    baby_cost                 = 20.00 if has_baby_seat else 0.00
+
+    # $15 per seat, minimum $15 if baby_seat checked but count is 0
+    if has_baby_seat:
+        seat_count = max(1, number_of_seats)
+        baby_cost  = BABY_SEAT_COST_PER_SEAT * seat_count
+    else:
+        baby_cost = 0.00
 
     disc = Discount.objects.first()
     night_surcharge_rate = float(disc.extra_charge_for_down_hours) if disc else 0.30
@@ -449,6 +470,7 @@ def calculate_price(
         "stop_cost":                stop_cost,
         "toll_cost":                toll_cost,
         "baby_cost":                baby_cost,
+        "number_of_seats":          seat_count if has_baby_seat else 0,
         "subtotal_before_return":   subtotal,
         "return_multiplier":        is_return_ride,
         "return_discount":          discount_amount,
@@ -482,11 +504,14 @@ def _build_whatsapp_url(order, hours: str) -> str:
         f"*Bags:* {order.number_of_bags}",
     ]
     if order.baby_seat:
-        lines.append(f"*Baby Seat:* Yes")
+        lines.append(f"*Baby / Child Seats:* Yes")
     if order.number_of_babies:
-        lines.append(f"*No. of Babies:* {order.number_of_babies}")
+        lines.append(f"*No. of Seats:* {order.number_of_babies}")
     if order.baby_ages:
-        lines.append(f"*Baby Ages:* {order.baby_ages.replace(',', ', ')}")
+        # Format each child's age individually
+        ages_list = [a.strip() for a in order.baby_ages.split(",") if a.strip()]
+        for i, age in enumerate(ages_list, 1):
+            lines.append(f"*Child {i} Age:* {age}")
     if order.special_instruction:
         lines.append(f"*Instructions:* {order.special_instruction}")
 
@@ -494,6 +519,23 @@ def _build_whatsapp_url(order, hours: str) -> str:
     import urllib.parse
     encoded = urllib.parse.quote(message)
     return f"https://wa.me/{_WHATSAPP_NUMBER}?text={encoded}"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Helpers to parse per-child age fields from POST
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _parse_child_ages(post_data, n_seats: int) -> str:
+    """
+    Reads child_age_1 … child_age_N from POST and returns a comma-separated
+    string for storage in Order.baby_ages, e.g. "7 months,2 years,1 year".
+    Ages are validated to be ≤ 10 years; blank entries stored as empty string.
+    """
+    ages = []
+    for i in range(1, n_seats + 1):
+        age = post_data.get(f"child_age_{i}", "").strip()
+        ages.append(age)
+    return ",".join(ages)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -531,16 +573,17 @@ def orders(request):
         pickup_time_raw = request.POST.get("pickup_time", "").strip() or None
         hourly_hours    = request.POST.get("hourly_hours", "").strip() if is_hourly else ""
 
-        # ── Baby seat details (optional, no validation) ───────────────────
-        n_babies      = 0
+        # ── Baby/child seat details ───────────────────────────────────────
+        n_seats       = 0
         baby_ages_raw = ""
         if has_baby_seat:
             try:
-                n_babies = int(request.POST.get("number_of_babies", 0) or 0)
+                n_seats = int(request.POST.get("number_of_babies", 0) or 0)
             except (ValueError, TypeError):
-                n_babies = 0
-            n_babies = max(0, min(4, n_babies))
-            baby_ages_raw = request.POST.get("baby_ages", "").strip()
+                n_seats = 0
+            n_seats = max(0, min(4, n_seats))
+            # Parse individual per-child age fields
+            baby_ages_raw = _parse_child_ages(request.POST, n_seats)
 
         form_data = {
             "service_type_key":     type_key,
@@ -558,8 +601,10 @@ def orders(request):
             "pickup_time":          pickup_time_raw or "",
             "limo_service_type":    vehicle,
             "baby_seat":            has_baby_seat,
-            "number_of_babies":     n_babies,
-            "baby_ages":            baby_ages_raw,
+            "number_of_babies":     n_seats,
+            # Pass individual ages back to template for re-population on error
+            "baby_ages_list":       [a.strip() for a in baby_ages_raw.split(",")]
+                                    if baby_ages_raw else [],
             "return_ride":          is_return_ride,
             "special_instruction":  request.POST.get("special_instruction", ""),
             "vehicle_colour":       request.POST.get("vehicle_colour", ""),
@@ -603,7 +648,7 @@ def orders(request):
                     pickup_time=pickup_time_raw or datetime.time(0, 0),
                     limo_service_type=vehicle,
                     baby_seat=has_baby_seat,
-                    number_of_babies=n_babies,
+                    number_of_babies=n_seats,
                     baby_ages=baby_ages_raw,
                     return_ride=False,
                     special_instruction=form_data["special_instruction"],
@@ -635,6 +680,7 @@ def orders(request):
                     vehicle=vehicle,
                     extra_stop=extra_stop,
                     has_baby_seat=has_baby_seat,
+                    number_of_seats=n_seats,
                     is_return_ride=is_return_ride,
                     pickup_time=pickup_time_raw,
                     pickup_address=pickup,
@@ -680,7 +726,7 @@ def orders(request):
                     pickup_time=pickup_time_raw or datetime.time(0, 0),
                     limo_service_type=vehicle,
                     baby_seat=has_baby_seat,
-                    number_of_babies=n_babies,
+                    number_of_babies=n_seats,
                     baby_ages=baby_ages_raw,
                     return_ride=is_return_ride,
                     special_instruction=form_data["special_instruction"],
@@ -759,7 +805,7 @@ def orders(request):
         "number_of_passengers": 2,
         "number_of_bags":       2,
         "number_of_babies":     0,
-        "baby_ages":            "",
+        "baby_ages_list":       [],
         "passenger_email":      prefill_email,
         "passenger_number":     prefill_phone,
         "limo_service_type":    rates[0]["name"],
